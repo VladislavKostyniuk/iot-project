@@ -1,50 +1,64 @@
 let allData = [];
-let filteredData = [];
-let tempChart, humChart;
 
 async function fetchData() {
-    const response = await fetch('/data?limit=50');  // більше даних для кращого фільтру
-    const json = await response.json();
-    if (json.status === 'ok') {
-        allData = json.data;
-        filteredData = [...allData];
-        updateTable(filteredData);
-        drawCharts(filteredData);
+    const response = await fetch('/data');
+    const result = await response.json();
+    if (result.status === 'ok') {
+        allData = result.data;
+        renderTable(allData);
+        renderCharts(allData);
     } else {
-        alert('Помилка завантаження даних');
+        console.error('Помилка завантаження даних:', result.message);
     }
 }
 
-function updateTable(data) {
+function renderTable(data) {
     const tbody = document.querySelector('#data-table tbody');
     tbody.innerHTML = '';
-    data.forEach(item => {
+
+    data.forEach((item, index) => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${item._id}</td>
-            <td>${item.device_id}</td>
-            <td>${item.temperature.toFixed(2)}</td>
-            <td>${item.humidity.toFixed(2)}</td>
-        `;
+
+        // Порядковий номер
+        const idCell = document.createElement('td');
+        idCell.textContent = index + 1;
+        tr.appendChild(idCell);
+
+        // Назва пристрою
+        const deviceCell = document.createElement('td');
+        deviceCell.textContent = `Пристрій ${index + 1}`;
+        tr.appendChild(deviceCell);
+
+        // Температура
+        const tempCell = document.createElement('td');
+        tempCell.textContent = item.temperature;
+        tr.appendChild(tempCell);
+
+        // Вологість
+        const humCell = document.createElement('td');
+        humCell.textContent = item.humidity;
+        tr.appendChild(humCell);
+
         tbody.appendChild(tr);
     });
 }
 
-function drawCharts(data) {
-    const labels = data.map(d => new Date(parseInt(d._id.substring(0, 8), 16) * 1000).toLocaleTimeString());
-    const temps = data.map(d => d.temperature);
-    const hums = data.map(d => d.humidity);
+function renderCharts(data) {
+    const ctxTemp = document.getElementById('tempChart').getContext('2d');
+    const ctxHum = document.getElementById('humChart').getContext('2d');
 
-    const tempCtx = document.getElementById('tempChart').getContext('2d');
-    const humCtx = document.getElementById('humChart').getContext('2d');
+    const labels = data.map((_, i) => i + 1);
+    const temps = data.map(item => item.temperature);
+    const hums = data.map(item => item.humidity);
 
-    if (tempChart) tempChart.destroy();
-    if (humChart) humChart.destroy();
+    // Якщо графіки вже є, їх треба оновити, тому збережемо їх у глобальні змінні
+    if (window.tempChartInstance) window.tempChartInstance.destroy();
+    if (window.humChartInstance) window.humChartInstance.destroy();
 
-    tempChart = new Chart(tempCtx, {
+    window.tempChartInstance = new Chart(ctxTemp, {
         type: 'line',
         data: {
-            labels: labels,
+            labels,
             datasets: [{
                 label: 'Температура (°C)',
                 data: temps,
@@ -54,13 +68,18 @@ function drawCharts(data) {
                 tension: 0.3
             }]
         },
-        options: { responsive: true, scales: { y: { beginAtZero: true } } }
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
     });
 
-    humChart = new Chart(humCtx, {
+    window.humChartInstance = new Chart(ctxHum, {
         type: 'line',
         data: {
-            labels: labels,
+            labels,
             datasets: [{
                 label: 'Вологість (%)',
                 data: hums,
@@ -70,7 +89,12 @@ function drawCharts(data) {
                 tension: 0.3
             }]
         },
-        options: { responsive: true, scales: { y: { beginAtZero: true } } }
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
     });
 }
 
@@ -78,26 +102,24 @@ function applyTemperatureFilter() {
     const minTemp = parseFloat(document.getElementById('minTemp').value);
     const maxTemp = parseFloat(document.getElementById('maxTemp').value);
 
-    filteredData = allData.filter(item => {
-        if (!isNaN(minTemp) && item.temperature < minTemp) return false;
-        if (!isNaN(maxTemp) && item.temperature > maxTemp) return false;
-        return true;
-    });
+    let filteredData = allData;
 
-    updateTable(filteredData);
-    drawCharts(filteredData);
+    if (!isNaN(minTemp)) {
+        filteredData = filteredData.filter(item => item.temperature >= minTemp);
+    }
+    if (!isNaN(maxTemp)) {
+        filteredData = filteredData.filter(item => item.temperature <= maxTemp);
+    }
+
+    renderTable(filteredData);
+    renderCharts(filteredData);
 }
 
 function resetFilter() {
     document.getElementById('minTemp').value = '';
     document.getElementById('maxTemp').value = '';
-    filteredData = [...allData];
-    updateTable(filteredData);
-    drawCharts(filteredData);
+    renderTable(allData);
+    renderCharts(allData);
 }
 
-// Початкове завантаження
-fetchData();
-
-// Оновлення даних кожні 15 секунд
-setInterval(fetchData, 15000);
+window.onload = fetchData;
