@@ -2,7 +2,7 @@ import requests
 import random
 import time
 
-URL = "http://localhost:5000/data"
+url = "https://iot-project-zy46.onrender.com/data"
 
 def generate_data():
     data = {
@@ -14,7 +14,7 @@ def generate_data():
 
 def send_data(data):
     try:
-        response = requests.post(URL, json=data)
+        response = requests.post(url, json=data)
         if response.status_code == 200:
             print("Дані успішно відправлені:", data)
         else:
