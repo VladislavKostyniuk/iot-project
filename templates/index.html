@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="uk">
+
+<head>
+    <meta charset="UTF-8">
+    <title>IoT Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <h1>Останні дані з IoT пристрою</h1>
+
+    <div style="margin-bottom: 20px;">
+        <label for="minTemp">Мін. температура:</label>
+        <input type="number" id="minTemp" step="0.1">
+        <label for="maxTemp">Макс. температура:</label>
+        <input type="number" id="maxTemp" step="0.1">
+        <button onclick="applyTemperatureFilter()">Фільтрувати</button>
+        <button onclick="resetFilter()">Скинути фільтр</button>
+    </div>
+
+    <table border="1" id="data-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>device_id</th>
+                <th>temperature</th>
+                <th>humidity</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <canvas id="tempChart" width="400" height="200"></canvas>
+    <canvas id="humChart" width="400" height="200"></canvas>
+
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
+</body>
+
+</html>
