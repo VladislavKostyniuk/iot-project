@@ -1,125 +1,126 @@
-let allData = [];
+let data = [];
+let filteredData = [];
+
+const tempChartCtx = document.getElementById('tempChart').getContext('2d');
+const humChartCtx = document.getElementById('humChart').getContext('2d');
+
+let tempChart = new Chart(tempChartCtx, {
+    type: 'line',
+    data: {
+        labels: [],
+        datasets: [{
+            label: 'Температура (°C)',
+            data: [],
+            borderColor: 'rgb(255, 99, 132)',
+            fill: false,
+            tension: 0.1
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: { beginAtZero: true }
+        }
+    }
+});
+
+let humChart = new Chart(humChartCtx, {
+    type: 'line',
+    data: {
+        labels: [],
+        datasets: [{
+            label: 'Вологість (%)',
+            data: [],
+            borderColor: 'rgb(54, 162, 235)',
+            fill: false,
+            tension: 0.1
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: { beginAtZero: true }
+        }
+    }
+});
 
 async function fetchData() {
-    const response = await fetch('/data');
-    const result = await response.json();
-    if (result.status === 'ok') {
-        allData = result.data;
-        renderTable(allData);
-        renderCharts(allData);
-    } else {
-        console.error('Помилка завантаження даних:', result.message);
+    try {
+        const response = await fetch('/data');
+        const json = await response.json();
+        if (json.status === 'ok') {
+            data = json.data;
+            filteredData = [...data];
+            renderTable(filteredData);
+            updateCharts(filteredData);
+        } else {
+            console.error('Помилка отримання даних:', json.message);
+        }
+    } catch (err) {
+        console.error('Помилка fetch:', err);
     }
 }
 
-function renderTable(data) {
+function renderTable(dataArray) {
     const tbody = document.querySelector('#data-table tbody');
     tbody.innerHTML = '';
-
-    data.forEach((item, index) => {
-        const tr = document.createElement('tr');
-
-        // Порядковий номер
-        const idCell = document.createElement('td');
-        idCell.textContent = index + 1;
-        tr.appendChild(idCell);
-
-        // Назва пристрою
-        const deviceCell = document.createElement('td');
-        deviceCell.textContent = `Пристрій ${index + 1}`;
-        tr.appendChild(deviceCell);
-
-        // Температура
-        const tempCell = document.createElement('td');
-        tempCell.textContent = item.temperature;
-        tr.appendChild(tempCell);
-
-        // Вологість
-        const humCell = document.createElement('td');
-        humCell.textContent = item.humidity;
-        tr.appendChild(humCell);
-
-        tbody.appendChild(tr);
+    dataArray.forEach((item, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${index + 1}</td>
+            <td>Пристрій ${item.device_id.replace(/[^0-9]/g, '') || index + 1}</td>
+            <td>${item.temperature}</td>
+            <td>${item.humidity}</td>
+        `;
+        tbody.appendChild(row);
     });
 }
 
-function renderCharts(data) {
-    const ctxTemp = document.getElementById('tempChart').getContext('2d');
-    const ctxHum = document.getElementById('humChart').getContext('2d');
+function updateCharts(dataArray) {
+    const labels = dataArray.map((_, i) => i + 1);
+    const temps = dataArray.map(item => item.temperature);
+    const hums = dataArray.map(item => item.humidity);
 
-    const labels = data.map((_, i) => i + 1);
-    const temps = data.map(item => item.temperature);
-    const hums = data.map(item => item.humidity);
+    tempChart.data.labels = labels;
+    tempChart.data.datasets[0].data = temps;
+    tempChart.update();
 
-    // Якщо графіки вже є, їх треба оновити, тому збережемо їх у глобальні змінні
-    if (window.tempChartInstance) window.tempChartInstance.destroy();
-    if (window.humChartInstance) window.humChartInstance.destroy();
-
-    window.tempChartInstance = new Chart(ctxTemp, {
-        type: 'line',
-        data: {
-            labels,
-            datasets: [{
-                label: 'Температура (°C)',
-                data: temps,
-                borderColor: 'rgba(255, 99, 132, 1)',
-                backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                fill: true,
-                tension: 0.3
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: { beginAtZero: true }
-            }
-        }
-    });
-
-    window.humChartInstance = new Chart(ctxHum, {
-        type: 'line',
-        data: {
-            labels,
-            datasets: [{
-                label: 'Вологість (%)',
-                data: hums,
-                borderColor: 'rgba(54, 162, 235, 1)',
-                backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                fill: true,
-                tension: 0.3
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: { beginAtZero: true }
-            }
-        }
-    });
+    humChart.data.labels = labels;
+    humChart.data.datasets[0].data = hums;
+    humChart.update();
 }
 
-function applyTemperatureFilter() {
+function applyFilter() {
     const minTemp = parseFloat(document.getElementById('minTemp').value);
     const maxTemp = parseFloat(document.getElementById('maxTemp').value);
+    const minHum = parseFloat(document.getElementById('minHum').value);
+    const maxHum = parseFloat(document.getElementById('maxHum').value);
 
-    let filteredData = allData;
-
-    if (!isNaN(minTemp)) {
-        filteredData = filteredData.filter(item => item.temperature >= minTemp);
-    }
-    if (!isNaN(maxTemp)) {
-        filteredData = filteredData.filter(item => item.temperature <= maxTemp);
-    }
+    filteredData = data.filter(item => {
+        const tempOk = (isNaN(minTemp) || item.temperature >= minTemp) &&
+            (isNaN(maxTemp) || item.temperature <= maxTemp);
+        const humOk = (isNaN(minHum) || item.humidity >= minHum) &&
+            (isNaN(maxHum) || item.humidity <= maxHum);
+        return tempOk && humOk;
+    });
 
     renderTable(filteredData);
-    renderCharts(filteredData);
+    updateCharts(filteredData);
 }
 
 function resetFilter() {
     document.getElementById('minTemp').value = '';
     document.getElementById('maxTemp').value = '';
-    renderTable(allData);
-    renderCharts(allData);
+    document.getElementById('minHum').value = '';
+    document.getElementById('maxHum').value = '';
+
+    filteredData = [...data];
+    renderTable(filteredData);
+    updateCharts(filteredData);
 }
 
-window.onload = fetchData;
+// Автоматичне оновлення кожні 10 секунд
+setInterval(fetchData, 10000);
+
+// Перший запуск
+fetchData();
