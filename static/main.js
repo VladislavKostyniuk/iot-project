@@ -12,7 +12,13 @@ function fetchData() {
         .then(response => response.json())
         .then(result => {
             if (result.status === 'ok') {
-                data = result.data;
+                data = result.data.map((entry, index) => {
+                    // Якщо немає унікальних id для пристроїв, пронумеруємо пристрої по черзі
+                    if (!entry.device_id) {
+                        entry.device_id = "device_" + (index + 1);
+                    }
+                    return entry;
+                });
                 populateDeviceFilter();
                 applyFilters();
             } else {
@@ -28,10 +34,10 @@ function populateDeviceFilter() {
     deviceFilter.querySelectorAll('option:not([value="all"])').forEach(o => o.remove());
 
     const deviceIds = [...new Set(data.map(entry => entry.device_id))];
-    deviceIds.forEach(id => {
+    deviceIds.forEach((id, i) => {
         const option = document.createElement('option');
         option.value = id;
-        option.textContent = `Пристрій ${id}`;
+        option.textContent = `Пристрій ${i + 1}`;
         deviceFilter.appendChild(option);
     });
 }
@@ -61,14 +67,18 @@ function renderTable(data) {
     const tbody = document.querySelector('#dataTable tbody');
     tbody.innerHTML = '';
     data.forEach((entry, index) => {
+        const temp = entry.temperature !== undefined ? entry.temperature.toFixed(1) : '-';
+        const hum = entry.humidity !== undefined ? entry.humidity.toFixed(1) : '-';
+        const timeStr = entry.timestamp ? new Date(entry.timestamp).toLocaleString() : '-';
+
         const row = document.createElement('tr');
         row.innerHTML = `
-      <td>${index + 1}</td>
-      <td>Пристрій ${entry.device_id}</td>
-      <td>${entry.temperature.toFixed(1)}</td>
-      <td>${entry.humidity.toFixed(1)}</td>
-      <td>${new Date(entry.timestamp).toLocaleString()}</td>
-    `;
+          <td>${index + 1}</td>
+          <td>Пристрій ${entry.device_id}</td>
+          <td>${temp}</td>
+          <td>${hum}</td>
+          <td>${timeStr}</td>
+        `;
         tbody.appendChild(row);
     });
 }
@@ -90,13 +100,15 @@ function renderChart(data) {
                     label: 'Температура (°C)',
                     data: tempData,
                     borderColor: 'rgb(255, 99, 132)',
-                    fill: false
+                    fill: false,
+                    tension: 0.1
                 },
                 {
                     label: 'Вологість (%)',
                     data: humData,
                     borderColor: 'rgb(54, 162, 235)',
-                    fill: false
+                    fill: false,
+                    tension: 0.1
                 }
             ]
         },
