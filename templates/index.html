@@ -2,132 +2,50 @@
 <html lang="uk">
 
 <head>
-    <meta charset="UTF-8" />
-    <title>IoT Dashboard</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f7f9fc;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        h1,
-        h2 {
-            color: #333;
-        }
-
-        .container {
-            max-width: 900px;
-            width: 100%;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        table {
-            border-collapse: collapse;
-            width: 100%;
-            margin: 20px 0;
-            text-align: center;
-        }
-
-        table,
-        th,
-        td {
-            border: 1px solid #ddd;
-        }
-
-        th,
-        td {
-            padding: 10px;
-        }
-
-        th {
-            background-color: #f0f0f0;
-        }
-
-        .filter-row {
-            margin-bottom: 15px;
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .filter-row label {
-            margin-right: 5px;
-        }
-
-        .filter-row input {
-            width: 80px;
-        }
-
-        button {
-            padding: 6px 12px;
-            cursor: pointer;
-            background-color: #1976d2;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            transition: background-color 0.3s ease;
-        }
-
-        button:hover {
-            background-color: #135ba1;
-        }
-
-        canvas {
-            margin-top: 20px;
-        }
-    </style>
+    <meta charset="UTF-8">
+    <title>Моніторинг пристроїв IoT</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 
 <body>
     <div class="container">
-        <h1>Останні дані з IoT пристрою</h1>
+        <h1>Моніторинг пристроїв</h1>
 
-        <div class="filter-row">
-            <div>
-                <label for="minTemp">Мін. температура (°C):</label>
-                <input type="number" id="minTemp" step="0.1" />
-                <label for="maxTemp">Макс. температура (°C):</label>
-                <input type="number" id="maxTemp" step="0.1" />
-            </div>
-            <div>
-                <label for="minHum">Мін. вологість (%):</label>
-                <input type="number" id="minHum" step="0.1" />
-                <label for="maxHum">Макс. вологість (%):</label>
-                <input type="number" id="maxHum" step="0.1" />
-            </div>
-            <div>
-                <button onclick="applyFilter()">Фільтрувати</button>
-                <button onclick="resetFilter()">Скинути фільтр</button>
-            </div>
+        <div class="filters">
+            <label for="deviceFilter">Пристрій:</label>
+            <select id="deviceFilter">
+                <option value="all">Усі</option>
+            </select>
+
+            <label for="timeFilter">Період:</label>
+            <select id="timeFilter">
+                <option value="all">Увесь час</option>
+                <option value="10">Останні 10 хв</option>
+                <option value="30">Останні 30 хв</option>
+                <option value="60">Остання година</option>
+            </select>
         </div>
 
-        <table id="data-table">
+        <table id="dataTable">
             <thead>
                 <tr>
                     <th>ID</th>
                     <th>Пристрій</th>
                     <th>Температура (°C)</th>
                     <th>Вологість (%)</th>
+                    <th>Час</th>
                 </tr>
             </thead>
             <tbody></tbody>
         </table>
 
-        <canvas id="tempChart" width="400" height="200"></canvas>
-        <canvas id="humChart" width="400" height="200"></canvas>
+        <canvas id="chart" width="800" height="400"></canvas>
     </div>
 
+    <script>
+        const data = {{ data | tojson }};
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="{{ url_for('static', filename='main.js') }}"></script>
 </body>
 
