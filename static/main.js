@@ -1,8 +1,31 @@
 let chart;
+let data = [];
 
 document.addEventListener('DOMContentLoaded', () => {
+    fetchData();
+    document.getElementById('deviceFilter').addEventListener('change', applyFilters);
+    document.getElementById('timeFilter').addEventListener('change', applyFilters);
+});
+
+function fetchData() {
+    fetch('/data')
+        .then(response => response.json())
+        .then(result => {
+            if (result.status === 'ok') {
+                data = result.data;
+                populateDeviceFilter();
+                applyFilters();
+            } else {
+                console.error('Помилка отримання даних:', result.message);
+            }
+        })
+        .catch(err => console.error('Помилка fetch:', err));
+}
+
+function populateDeviceFilter() {
     const deviceFilter = document.getElementById('deviceFilter');
-    const timeFilter = document.getElementById('timeFilter');
+    // Очищаємо попередні опції, крім "Усі"
+    deviceFilter.querySelectorAll('option:not([value="all"])').forEach(o => o.remove());
 
     const deviceIds = [...new Set(data.map(entry => entry.device_id))];
     deviceIds.forEach(id => {
@@ -11,26 +34,21 @@ document.addEventListener('DOMContentLoaded', () => {
         option.textContent = `Пристрій ${id}`;
         deviceFilter.appendChild(option);
     });
-
-    deviceFilter.addEventListener('change', applyFilters);
-    timeFilter.addEventListener('change', applyFilters);
-
-    applyFilters();
-});
+}
 
 function applyFilters() {
-    const deviceFilter = document.getElementById('deviceFilter').value;
-    const timeFilter = document.getElementById('timeFilter').value;
+    const deviceFilterValue = document.getElementById('deviceFilter').value;
+    const timeFilterValue = document.getElementById('timeFilter').value;
     const now = Date.now();
 
     let filtered = data;
 
-    if (deviceFilter !== 'all') {
-        filtered = filtered.filter(entry => entry.device_id === deviceFilter);
+    if (deviceFilterValue !== 'all') {
+        filtered = filtered.filter(entry => entry.device_id === deviceFilterValue);
     }
 
-    if (timeFilter !== 'all') {
-        const minutes = parseInt(timeFilter);
+    if (timeFilterValue !== 'all') {
+        const minutes = parseInt(timeFilterValue);
         const cutoff = now - minutes * 60 * 1000;
         filtered = filtered.filter(entry => new Date(entry.timestamp).getTime() >= cutoff);
     }
