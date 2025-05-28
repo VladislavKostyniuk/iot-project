@@ -2,9 +2,9 @@
 <html lang="uk">
 
 <head>
-    <meta charset="UTF-8" />
+    <meta charset="UTF-8">
     <title>Моніторинг пристроїв IoT</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <style>
         .filters {
             display: flex;
@@ -18,30 +18,20 @@
             flex-direction: column;
         }
 
-        .filter-group label {
-            margin-bottom: 0.25rem;
-        }
-
-        .filters button {
-            align-self: end;
-            height: 2.4rem;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
+        .current-values {
             margin-bottom: 2rem;
         }
 
-        table th,
-        table td {
+        .current-card {
             border: 1px solid #ccc;
-            padding: 0.5rem;
-            text-align: center;
+            border-radius: 5px;
+            padding: 1rem;
+            margin-bottom: 1rem;
         }
 
-        canvas {
-            max-width: 100%;
+        .filter-actions {
+            display: flex;
+            align-items: end;
         }
     </style>
 </head>
@@ -49,6 +39,12 @@
 <body>
     <div class="container">
         <h1>Моніторинг пристроїв</h1>
+
+        <div id="lastUpdated" style="margin-bottom: 1rem; font-style: italic; color: gray;"></div>
+
+        <div class="current-values" id="currentValues">
+            <!-- Поточні значення пристроїв тут -->
+        </div>
 
         <div class="filters">
             <div class="filter-group">
@@ -61,27 +57,35 @@
             <div class="filter-group">
                 <label for="timeFilter">Період:</label>
                 <select id="timeFilter">
-                    <option value="1">Остання 1 хв</option>
-                    <option value="5">Останні 5 хв</option>
-                    <option value="10">Останні 10 хв</option>
+                    <option value="1">1 хв</option>
+                    <option value="5">5 хв</option>
+                    <option value="10">10 хв</option>
                 </select>
             </div>
 
             <div class="filter-group">
-                <label for="tempMin">Температура від:</label>
-                <input type="number" id="tempMin" placeholder="мін °C" />
-                <label for="tempMax">до:</label>
-                <input type="number" id="tempMax" placeholder="макс °C" />
+                <label for="tempMin">Мін. температура:</label>
+                <input type="number" id="tempMin">
             </div>
 
             <div class="filter-group">
-                <label for="humMin">Вологість від:</label>
-                <input type="number" id="humMin" placeholder="мін %" />
-                <label for="humMax">до:</label>
-                <input type="number" id="humMax" placeholder="макс %" />
+                <label for="tempMax">Макс. температура:</label>
+                <input type="number" id="tempMax">
             </div>
 
-            <button id="resetFilters">Очистити фільтри</button>
+            <div class="filter-group">
+                <label for="humMin">Мін. вологість:</label>
+                <input type="number" id="humMin">
+            </div>
+
+            <div class="filter-group">
+                <label for="humMax">Макс. вологість:</label>
+                <input type="number" id="humMax">
+            </div>
+
+            <div class="filter-actions">
+                <button id="resetFilters">Очистити фільтри</button>
+            </div>
         </div>
 
         <table id="dataTable">
