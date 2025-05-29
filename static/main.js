@@ -46,6 +46,7 @@ function applyFilters() {
     if (!isNaN(tempMax)) filtered = filtered.filter(e => e.temperature <= tempMax);
     if (!isNaN(humMin)) filtered = filtered.filter(e => e.humidity >= humMin);
     if (!isNaN(humMax)) filtered = filtered.filter(e => e.humidity <= humMax);
+
     if (!isNaN(rowNumber) && rowNumber >= 1 && rowNumber <= filtered.length) {
         filtered = [filtered[rowNumber - 1]];
     }
@@ -53,13 +54,13 @@ function applyFilters() {
     renderTable(filtered);
 }
 
-function renderTable(dataToRender) {
+function renderTable(filteredData) {
     const tbody = document.querySelector('#dataTable tbody');
     tbody.innerHTML = '';
-    dataToRender.forEach((entry, index) => {
+    filteredData.forEach((entry, index) => {
         const temp = entry.temperature !== undefined ? entry.temperature.toFixed(1) : '-';
         const hum = entry.humidity !== undefined ? entry.humidity.toFixed(1) : '-';
-        const timeStr = entry.timestamp ? new Date(entry.timestamp).toLocaleString() : '-';
+        const timeStr = entry.timestamp ? new Date(entry.timestamp).toLocaleString('uk-UA') : '-';
         const deviceId = entry.device_id || 'Невідомий';
 
         const row = document.createElement('tr');
