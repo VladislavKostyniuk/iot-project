@@ -7,69 +7,107 @@
     <style>
         body {
             font-family: Arial, sans-serif;
+            background: #f9f9f9;
+            margin: 0;
             padding: 20px;
+            color: #333;
         }
 
-        label {
-            margin-right: 10px;
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 25px 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
 
-        input {
-            margin-right: 20px;
+        h1 {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        .filters input {
+            padding: 8px 12px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            min-width: 150px;
+        }
+
+        .filters button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s ease;
+        }
+
+        .filters button:hover {
+            background-color: #0056b3;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
         }
 
-        th,
-        td {
-            border: 1px solid #ccc;
-            padding: 8px;
+        table thead {
+            background-color: #007bff;
+            color: white;
+        }
+
+        table th,
+        table td {
+            padding: 12px 15px;
+            border: 1px solid #ddd;
             text-align: center;
+            font-size: 14px;
         }
 
-        th {
-            background-color: #f0f0f0;
-        }
-
-        button {
-            padding: 5px 10px;
+        table tbody tr:nth-child(even) {
+            background-color: #f2f2f2;
         }
     </style>
 </head>
 
 <body>
-    <h1>Моніторинг температури та вологості</h1>
+    <div class="container">
+        <h1>Моніторинг температури та вологості</h1>
 
-    <div>
-        <label for="rowNumber">№ рядка:</label>
-        <input type="number" id="rowNumber" placeholder="Напр. 1" min="1" style="width: 60px;">
-        <label for="tempMin">Мін. температура:</label>
-        <input type="number" id="tempMin">
-        <label for="tempMax">Макс. температура:</label>
-        <input type="number" id="tempMax">
-        <label for="humMin">Мін. вологість:</label>
-        <input type="number" id="humMin">
-        <label for="humMax">Макс. вологість:</label>
-        <input type="number" id="humMax">
-        <button id="clearFilters">Очистити</button>
+        <div class="filters">
+            <input type="number" id="rowNumber" placeholder="№ рядка" min="1">
+            <input type="number" id="tempMin" placeholder="Мін. температура">
+            <input type="number" id="tempMax" placeholder="Макс. температура">
+            <input type="number" id="humMin" placeholder="Мін. вологість">
+            <input type="number" id="humMax" placeholder="Макс. вологість">
+            <button id="clearFilters">Очистити</button>
+        </div>
+
+        <table id="dataTable">
+            <thead>
+                <tr>
+                    <th>№</th>
+                    <th>Пристрій</th>
+                    <th>Температура (°C)</th>
+                    <th>Вологість (%)</th>
+                    <th>Час</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
     </div>
-
-    <table id="dataTable">
-        <thead>
-            <tr>
-                <th>№</th>
-                <th>Пристрій</th>
-                <th>Температура (°C)</th>
-                <th>Вологість (%)</th>
-                <th>Час</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
 
     <script src="static/main.js"></script>
 </body>

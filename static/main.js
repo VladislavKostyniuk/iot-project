@@ -42,31 +42,30 @@ function applyFilters() {
 
     let filtered = data;
 
-    if (!isNaN(rowNumber)) {
-        filtered = filtered.slice(rowNumber - 1, rowNumber); // тільки 1 рядок
-    }
-
     if (!isNaN(tempMin)) filtered = filtered.filter(e => e.temperature >= tempMin);
     if (!isNaN(tempMax)) filtered = filtered.filter(e => e.temperature <= tempMax);
     if (!isNaN(humMin)) filtered = filtered.filter(e => e.humidity >= humMin);
     if (!isNaN(humMax)) filtered = filtered.filter(e => e.humidity <= humMax);
+    if (!isNaN(rowNumber) && rowNumber >= 1 && rowNumber <= filtered.length) {
+        filtered = [filtered[rowNumber - 1]];
+    }
 
     renderTable(filtered);
 }
 
-function renderTable(data) {
+function renderTable(dataToRender) {
     const tbody = document.querySelector('#dataTable tbody');
     tbody.innerHTML = '';
-    data.forEach((entry, index) => {
+    dataToRender.forEach((entry, index) => {
         const temp = entry.temperature !== undefined ? entry.temperature.toFixed(1) : '-';
         const hum = entry.humidity !== undefined ? entry.humidity.toFixed(1) : '-';
-        const timeStr = entry.timestamp ? new Date(entry.timestamp).toLocaleString() : new Date().toLocaleTimeString();
-        const deviceName = entry.device_id || 'Невідомо';
+        const timeStr = entry.timestamp ? new Date(entry.timestamp).toLocaleString() : '-';
+        const deviceId = entry.device_id || 'Невідомий';
 
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>${index + 1}</td>
-            <td>${deviceName}</td>
+            <td>${deviceId}</td>
             <td>${temp}</td>
             <td>${hum}</td>
             <td>${timeStr}</td>
