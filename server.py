@@ -1,14 +1,10 @@
 from flask import Flask, request, render_template
 from pymongo import MongoClient
-from bson.objectid import ObjectId
-from datetime import datetime
 import traceback
 
 app = Flask(__name__)
 
-client = MongoClient(
-    "mongodb+srv://kn1b21kostyniuk:k1b21@cluster0.hkvkcga.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
-)
+client = MongoClient("mongodb+srv://kn1b21kostyniuk:k1b21@cluster0.hkvkcga.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
 
 db = client['iot_data']
 collection = db['sensor_readings']
@@ -18,9 +14,6 @@ def receive_data():
     try:
         data = request.get_json()
         print("Отримані дані:", data)
-        # Якщо в даних немає timestamp — додамо поточний час
-        if 'timestamp' not in data:
-            data['timestamp'] = datetime.utcnow().isoformat() + 'Z'
         collection.insert_one(data)
         return {'status': 'ok'}
     except Exception as e:
@@ -31,7 +24,7 @@ def receive_data():
 @app.route('/data', methods=['GET'])
 def get_data():
     try:
-        last_records = list(collection.aggregate([
+        pipeline = [
             {"$sort": {"timestamp": -1}},
             {
                 "$group": {
@@ -40,10 +33,10 @@ def get_data():
                 }
             },
             {"$replaceRoot": {"newRoot": "$doc"}}
-        ]))
-
+        ]
+        last_records = list(collection.aggregate(pipeline))
         for record in last_records:
-            record['_id'] = str(record['_id'])  # Конвертуємо ObjectId у рядок для JSON
+            record['_id'] = str(record['_id'])
         return {'status': 'ok', 'data': last_records}
     except Exception as e:
         return {'status': 'error', 'message': str(e)}, 500
