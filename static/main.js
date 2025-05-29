@@ -17,14 +17,7 @@ function fetchData() {
         .then(res => res.json())
         .then(result => {
             if (result.status === 'ok') {
-                const latestByDevice = {};
-                result.data.forEach(entry => {
-                    const id = entry.device_id || 'unknown';
-                    if (!latestByDevice[id] || new Date(entry.timestamp) > new Date(latestByDevice[id].timestamp)) {
-                        latestByDevice[id] = entry;
-                    }
-                });
-                data = Object.values(latestByDevice);
+                data = result.data;
                 applyFilters();
             } else {
                 console.error('Помилка отримання даних:', result.message);
