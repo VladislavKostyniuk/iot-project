@@ -1,11 +1,16 @@
 let data = [];
 
 const friendlyNames = {
-    'device_1': 'Кухня',
-    'device_2': 'Вітальня',
-    'device_3': 'Балкон',
-    'device_4': 'Спальня',
-    'device_5': 'Серверна',
+    'device_001': 'Кухня',
+    'device_002': 'Вітальня',
+    'device_003': 'Балкон',
+    'device_004': 'Спальня',
+    'device_005': 'Серверна',
+    'device_006': 'Коридор',
+    'device_007': 'Кабінет',
+    'device_008': 'Гараж',
+    'device_009': 'Ванна',
+    'device_010': 'Тераса',
 };
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -25,7 +30,15 @@ function fetchData() {
         .then(res => res.json())
         .then(result => {
             if (result.status === 'ok') {
-                data = result.data;  // Тепер беремо всі записи без фільтрації
+                // Зберігаємо найсвіжіші записи по кожному пристрою
+                const latestByDevice = {};
+                result.data.forEach(entry => {
+                    const id = entry.device_id || 'unknown';
+                    if (!latestByDevice[id] || new Date(entry.timestamp) > new Date(latestByDevice[id].timestamp)) {
+                        latestByDevice[id] = entry;
+                    }
+                });
+                data = Object.values(latestByDevice);
                 populateDeviceFilter();
                 applyFilters();
             } else {
@@ -37,7 +50,7 @@ function fetchData() {
 
 function populateDeviceFilter() {
     const deviceFilter = document.getElementById('deviceFilter');
-    // Видаляємо всі опції крім "Усі пристрої"
+    // Видаляємо всі крім "Усі пристрої"
     deviceFilter.querySelectorAll('option:not([value="all"])').forEach(o => o.remove());
 
     const deviceIds = [...new Set(data.map(entry => entry.device_id))];
@@ -75,7 +88,6 @@ function renderTable(data) {
         const temp = entry.temperature !== undefined ? entry.temperature.toFixed(1) : '-';
         const hum = entry.humidity !== undefined ? entry.humidity.toFixed(1) : '-';
         const timeStr = entry.timestamp ? new Date(entry.timestamp).toLocaleString() : new Date().toLocaleTimeString();
-
         const deviceName = friendlyNames[entry.device_id] || entry.device_id;
 
         const row = document.createElement('tr');
