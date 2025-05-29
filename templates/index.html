@@ -2,42 +2,76 @@
 <html lang="uk">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Моніторинг пристроїв</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}" />
+    <meta charset="UTF-8">
+    <title>Моніторинг IoT</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        label {
+            margin-right: 10px;
+        }
+
+        input {
+            margin-right: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f0f0f0;
+        }
+
+        button {
+            padding: 5px 10px;
+        }
+    </style>
 </head>
 
 <body>
-    <div class="container">
-        <h1>Поточні дані з пристроїв</h1>
+    <h1>Моніторинг температури та вологості</h1>
 
-        <div class="filters">
-            <select id="deviceFilter">
-                <option value="all">Усі пристрої</option>
-            </select>
-            <input type="number" id="tempMin" placeholder="Мін. температура (°C)" />
-            <input type="number" id="tempMax" placeholder="Макс. температура (°C)" />
-            <input type="number" id="humMin" placeholder="Мін. вологість (%)" />
-            <input type="number" id="humMax" placeholder="Макс. вологість (%)" />
-            <button id="clearFilters">Очистити фільтри</button>
-        </div>
-
-        <table id="dataTable">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Пристрій</th>
-                    <th>Температура (°C)</th>
-                    <th>Вологість (%)</th>
-                    <th>Час</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
+    <div>
+        <label for="rowNumber">№ рядка:</label>
+        <input type="number" id="rowNumber" placeholder="Напр. 1" min="1" style="width: 60px;">
+        <label for="tempMin">Мін. температура:</label>
+        <input type="number" id="tempMin">
+        <label for="tempMax">Макс. температура:</label>
+        <input type="number" id="tempMax">
+        <label for="humMin">Мін. вологість:</label>
+        <input type="number" id="humMin">
+        <label for="humMax">Макс. вологість:</label>
+        <input type="number" id="humMax">
+        <button id="clearFilters">Очистити</button>
     </div>
 
-    <script src="{{ url_for('static', filename='main.js') }}"></script>
+    <table id="dataTable">
+        <thead>
+            <tr>
+                <th>№</th>
+                <th>Пристрій</th>
+                <th>Температура (°C)</th>
+                <th>Вологість (%)</th>
+                <th>Час</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <script src="static/main.js"></script>
 </body>
 
 </html>

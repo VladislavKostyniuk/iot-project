@@ -1,23 +1,10 @@
 let data = [];
 
-const friendlyNames = {
-    'device_001': 'Кухня',
-    'device_002': 'Вітальня',
-    'device_003': 'Балкон',
-    'device_004': 'Спальня',
-    'device_005': 'Серверна',
-    'device_006': 'Коридор',
-    'device_007': 'Кабінет',
-    'device_008': 'Гараж',
-    'device_009': 'Ванна',
-    'device_010': 'Тераса',
-};
-
 window.addEventListener('DOMContentLoaded', () => {
     fetchData();
     setInterval(fetchData, 10000);
 
-    document.getElementById('deviceFilter').addEventListener('change', applyFilters);
+    document.getElementById('rowNumber').addEventListener('input', applyFilters);
     document.getElementById('tempMin').addEventListener('input', applyFilters);
     document.getElementById('tempMax').addEventListener('input', applyFilters);
     document.getElementById('humMin').addEventListener('input', applyFilters);
@@ -30,7 +17,6 @@ function fetchData() {
         .then(res => res.json())
         .then(result => {
             if (result.status === 'ok') {
-                // Зберігаємо найсвіжіші записи по кожному пристрою
                 const latestByDevice = {};
                 result.data.forEach(entry => {
                     const id = entry.device_id || 'unknown';
@@ -39,7 +25,6 @@ function fetchData() {
                     }
                 });
                 data = Object.values(latestByDevice);
-                populateDeviceFilter();
                 applyFilters();
             } else {
                 console.error('Помилка отримання даних:', result.message);
@@ -48,31 +33,19 @@ function fetchData() {
         .catch(err => console.error('Помилка fetch:', err));
 }
 
-function populateDeviceFilter() {
-    const deviceFilter = document.getElementById('deviceFilter');
-    // Видаляємо всі крім "Усі пристрої"
-    deviceFilter.querySelectorAll('option:not([value="all"])').forEach(o => o.remove());
-
-    const deviceIds = [...new Set(data.map(entry => entry.device_id))];
-    deviceIds.forEach(id => {
-        const option = document.createElement('option');
-        option.value = id;
-        option.textContent = friendlyNames[id] || id;
-        deviceFilter.appendChild(option);
-    });
-}
-
 function applyFilters() {
-    const deviceFilterValue = document.getElementById('deviceFilter').value;
+    const rowNumber = parseInt(document.getElementById('rowNumber').value);
     const tempMin = parseFloat(document.getElementById('tempMin').value);
     const tempMax = parseFloat(document.getElementById('tempMax').value);
     const humMin = parseFloat(document.getElementById('humMin').value);
     const humMax = parseFloat(document.getElementById('humMax').value);
 
     let filtered = data;
-    if (deviceFilterValue !== 'all') {
-        filtered = filtered.filter(entry => entry.device_id === deviceFilterValue);
+
+    if (!isNaN(rowNumber)) {
+        filtered = filtered.slice(rowNumber - 1, rowNumber); // тільки 1 рядок
     }
+
     if (!isNaN(tempMin)) filtered = filtered.filter(e => e.temperature >= tempMin);
     if (!isNaN(tempMax)) filtered = filtered.filter(e => e.temperature <= tempMax);
     if (!isNaN(humMin)) filtered = filtered.filter(e => e.humidity >= humMin);
@@ -88,7 +61,7 @@ function renderTable(data) {
         const temp = entry.temperature !== undefined ? entry.temperature.toFixed(1) : '-';
         const hum = entry.humidity !== undefined ? entry.humidity.toFixed(1) : '-';
         const timeStr = entry.timestamp ? new Date(entry.timestamp).toLocaleString() : new Date().toLocaleTimeString();
-        const deviceName = friendlyNames[entry.device_id] || entry.device_id;
+        const deviceName = entry.device_id || 'Невідомо';
 
         const row = document.createElement('tr');
         row.innerHTML = `
@@ -103,7 +76,7 @@ function renderTable(data) {
 }
 
 function clearFilters() {
-    document.getElementById('deviceFilter').value = 'all';
+    document.getElementById('rowNumber').value = '';
     document.getElementById('tempMin').value = '';
     document.getElementById('tempMax').value = '';
     document.getElementById('humMin').value = '';

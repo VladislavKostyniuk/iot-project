@@ -1,11 +1,11 @@
 from flask import Flask, request, render_template
 from pymongo import MongoClient
+from bson.objectid import ObjectId
 import traceback
 
 app = Flask(__name__)
 
 client = MongoClient("mongodb+srv://kn1b21kostyniuk:k1b21@cluster0.hkvkcga.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
-
 db = client['iot_data']
 collection = db['sensor_readings']
 
@@ -24,19 +24,9 @@ def receive_data():
 @app.route('/data', methods=['GET'])
 def get_data():
     try:
-        pipeline = [
-            {"$sort": {"timestamp": -1}},
-            {
-                "$group": {
-                    "_id": "$device_id",
-                    "doc": {"$first": "$$ROOT"}
-                }
-            },
-            {"$replaceRoot": {"newRoot": "$doc"}}
-        ]
-        last_records = list(collection.aggregate(pipeline))
+        last_records = list(collection.find().sort('_id', -1).limit(10))
         for record in last_records:
-            record['_id'] = str(record['_id'])
+            record['_id'] = str(record['_id'])  # Конвертуємо ObjectId у рядок
         return {'status': 'ok', 'data': last_records}
     except Exception as e:
         return {'status': 'error', 'message': str(e)}, 500
