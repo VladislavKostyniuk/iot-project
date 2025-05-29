@@ -1,5 +1,12 @@
-// main.js
 let data = [];
+
+// Мапа ID → дружня назва
+const friendlyNames = {
+    'device_1': 'Теплиця 1',
+    'device_2': 'Теплиця 2',
+    'ESP_A1': 'Підвал A1',
+    'ESP_B2': 'Сарай B2',
+};
 
 window.addEventListener('DOMContentLoaded', () => {
     fetchData();
@@ -38,10 +45,10 @@ function populateDeviceFilter() {
     deviceFilter.querySelectorAll('option:not([value="all"])').forEach(o => o.remove());
 
     const deviceIds = [...new Set(data.map(entry => entry.device_id))];
-    deviceIds.forEach((id, i) => {
+    deviceIds.forEach(id => {
         const option = document.createElement('option');
         option.value = id;
-        option.textContent = `Пристрій ${i + 1}`;
+        option.textContent = friendlyNames[id] || id;
         deviceFilter.appendChild(option);
     });
 }
@@ -79,15 +86,16 @@ function renderTable(data) {
     data.forEach((entry, index) => {
         const temp = entry.temperature !== undefined ? entry.temperature.toFixed(1) : '-';
         const hum = entry.humidity !== undefined ? entry.humidity.toFixed(1) : '-';
-        const timeStr = entry.timestamp ? new Date(entry.timestamp).toLocaleString() : '-';
+        const timeStr = entry.timestamp
+            ? new Date(entry.timestamp).toLocaleString()
+            : new Date().toLocaleString();
 
-        const deviceIds = [...new Set(data.map(e => e.device_id))];
-        const deviceIndex = deviceIds.indexOf(entry.device_id) + 1;
+        const deviceName = friendlyNames[entry.device_id] || entry.device_id;
 
         const row = document.createElement('tr');
         row.innerHTML = `
             <td>${index + 1}</td>
-            <td>Пристрій ${deviceIndex > 0 ? deviceIndex : entry.device_id}</td>
+            <td>${deviceName}</td>
             <td>${temp}</td>
             <td>${hum}</td>
             <td>${timeStr}</td>

@@ -2,44 +2,25 @@
 <html lang="uk">
 
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Моніторинг пристроїв</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="styles.css" />
 </head>
 
 <body>
     <div class="container">
-        <h1>Поточні значення пристроїв</h1>
+        <h1>Поточні дані з пристроїв</h1>
 
         <div class="filters">
-            <div>
-                <label for="deviceFilter">Пошук по пристроях:</label>
-                <select id="deviceFilter">
-                    <option value="all">Усі</option>
-                </select>
-            </div>
-
-            <div class="range-group">
-                <label for="tempMin">Мін. температура:</label>
-                <input type="number" id="tempMin" placeholder="°C">
-            </div>
-            <div class="range-group">
-                <label for="tempMax">Макс. температура:</label>
-                <input type="number" id="tempMax" placeholder="°C">
-            </div>
-
-            <div class="range-group">
-                <label for="humMin">Мін. вологість:</label>
-                <input type="number" id="humMin" placeholder="%">
-            </div>
-            <div class="range-group">
-                <label for="humMax">Макс. вологість:</label>
-                <input type="number" id="humMax" placeholder="%">
-            </div>
-
-            <div class="button-group">
-                <button id="clearFilters">Очистити фільтри</button>
-            </div>
+            <select id="deviceFilter">
+                <option value="all">Усі пристрої</option>
+            </select>
+            <input type="number" id="tempMin" placeholder="Мін. температура (°C)" />
+            <input type="number" id="tempMax" placeholder="Макс. температура (°C)" />
+            <input type="number" id="humMin" placeholder="Мін. вологість (%)" />
+            <input type="number" id="humMax" placeholder="Макс. вологість (%)" />
+            <button id="clearFilters">Очистити фільтри</button>
         </div>
 
         <table id="dataTable">
@@ -52,13 +33,11 @@
                     <th>Час</th>
                 </tr>
             </thead>
-            <tbody>
-                <!-- Дані оновлюються JavaScript-ом -->
-            </tbody>
+            <tbody></tbody>
         </table>
     </div>
 
-    <script src="{{ url_for('static', filename='main.js') }}"></script>
+    <script src="main.js"></script>
 </body>
 
 </html>
