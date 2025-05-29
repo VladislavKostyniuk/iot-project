@@ -3,108 +3,61 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Моніторинг пристроїв IoT</title>
+    <title>Моніторинг пристроїв</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <style>
-        .filters {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .current-values {
-            margin-bottom: 2rem;
-        }
-
-        .current-card {
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            padding: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .filter-actions {
-            display: flex;
-            align-items: end;
-        }
-    </style>
 </head>
 
 <body>
     <div class="container">
-        <h1>Моніторинг пристроїв</h1>
-
-        <div id="lastUpdated" style="margin-bottom: 1rem; font-style: italic; color: gray;"></div>
-
-        <div class="current-values" id="currentValues">
-            <!-- Поточні значення пристроїв тут -->
-        </div>
+        <h1>Поточні значення пристроїв</h1>
 
         <div class="filters">
-            <div class="filter-group">
-                <label for="deviceFilter">Пристрій:</label>
+            <div>
+                <label for="deviceFilter">Пошук по пристроях:</label>
                 <select id="deviceFilter">
                     <option value="all">Усі</option>
                 </select>
             </div>
 
-            <div class="filter-group">
-                <label for="timeFilter">Період:</label>
-                <select id="timeFilter">
-                    <option value="1">1 хв</option>
-                    <option value="5">5 хв</option>
-                    <option value="10">10 хв</option>
-                </select>
-            </div>
-
-            <div class="filter-group">
+            <div class="range-group">
                 <label for="tempMin">Мін. температура:</label>
-                <input type="number" id="tempMin">
+                <input type="number" id="tempMin" placeholder="°C">
             </div>
-
-            <div class="filter-group">
+            <div class="range-group">
                 <label for="tempMax">Макс. температура:</label>
-                <input type="number" id="tempMax">
+                <input type="number" id="tempMax" placeholder="°C">
             </div>
 
-            <div class="filter-group">
+            <div class="range-group">
                 <label for="humMin">Мін. вологість:</label>
-                <input type="number" id="humMin">
+                <input type="number" id="humMin" placeholder="%">
             </div>
-
-            <div class="filter-group">
+            <div class="range-group">
                 <label for="humMax">Макс. вологість:</label>
-                <input type="number" id="humMax">
+                <input type="number" id="humMax" placeholder="%">
             </div>
 
-            <div class="filter-actions">
-                <button id="resetFilters">Очистити фільтри</button>
+            <div class="button-group">
+                <button id="clearFilters">Очистити фільтри</button>
             </div>
         </div>
 
         <table id="dataTable">
             <thead>
                 <tr>
-                    <th>ID</th>
+                    <th>#</th>
                     <th>Пристрій</th>
                     <th>Температура (°C)</th>
                     <th>Вологість (%)</th>
                     <th>Час</th>
                 </tr>
             </thead>
-            <tbody></tbody>
+            <tbody>
+                <!-- Дані оновлюються JavaScript-ом -->
+            </tbody>
         </table>
-
-        <canvas id="chart" width="800" height="400"></canvas>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="{{ url_for('static', filename='main.js') }}"></script>
 </body>
 
