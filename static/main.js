@@ -1,11 +1,11 @@
 let data = [];
 
-// Мапа ID → дружня назва
 const friendlyNames = {
-    'device_1': 'Теплиця 1',
-    'device_2': 'Теплиця 2',
-    'ESP_A1': 'Підвал A1',
-    'ESP_B2': 'Сарай B2',
+    'device_1': 'Кухня',
+    'device_2': 'Вітальня',
+    'device_3': 'Балкон',
+    'device_4': 'Спальня',
+    'device_5': 'Серверна',
 };
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -25,12 +25,14 @@ function fetchData() {
         .then(res => res.json())
         .then(result => {
             if (result.status === 'ok') {
-                data = result.data.map((entry, index) => {
-                    if (!entry.device_id) {
-                        entry.device_id = "device_" + (index + 1);
+                const latestByDevice = {};
+                result.data.forEach(entry => {
+                    const id = entry.device_id || 'unknown';
+                    if (!latestByDevice[id] || new Date(entry.timestamp) > new Date(latestByDevice[id].timestamp)) {
+                        latestByDevice[id] = entry;
                     }
-                    return entry;
                 });
+                data = Object.values(latestByDevice);
                 populateDeviceFilter();
                 applyFilters();
             } else {
@@ -64,18 +66,10 @@ function applyFilters() {
     if (deviceFilterValue !== 'all') {
         filtered = filtered.filter(entry => entry.device_id === deviceFilterValue);
     }
-    if (!isNaN(tempMin)) {
-        filtered = filtered.filter(entry => entry.temperature !== undefined && entry.temperature >= tempMin);
-    }
-    if (!isNaN(tempMax)) {
-        filtered = filtered.filter(entry => entry.temperature !== undefined && entry.temperature <= tempMax);
-    }
-    if (!isNaN(humMin)) {
-        filtered = filtered.filter(entry => entry.humidity !== undefined && entry.humidity >= humMin);
-    }
-    if (!isNaN(humMax)) {
-        filtered = filtered.filter(entry => entry.humidity !== undefined && entry.humidity <= humMax);
-    }
+    if (!isNaN(tempMin)) filtered = filtered.filter(e => e.temperature >= tempMin);
+    if (!isNaN(tempMax)) filtered = filtered.filter(e => e.temperature <= tempMax);
+    if (!isNaN(humMin)) filtered = filtered.filter(e => e.humidity >= humMin);
+    if (!isNaN(humMax)) filtered = filtered.filter(e => e.humidity <= humMax);
 
     renderTable(filtered);
 }
@@ -86,9 +80,7 @@ function renderTable(data) {
     data.forEach((entry, index) => {
         const temp = entry.temperature !== undefined ? entry.temperature.toFixed(1) : '-';
         const hum = entry.humidity !== undefined ? entry.humidity.toFixed(1) : '-';
-        const timeStr = entry.timestamp
-            ? new Date(entry.timestamp).toLocaleString()
-            : new Date().toLocaleString();
+        const timeStr = new Date().toLocaleTimeString(); // Актуальний час на клієнті
 
         const deviceName = friendlyNames[entry.device_id] || entry.device_id;
 

@@ -27,28 +27,18 @@ h1 {
     margin-bottom: 20px;
 }
 
-#deviceFilter,
-input[type="number"],
-button {
+.filters input,
+.filters select,
+.filters button {
     padding: 6px 12px;
     border-radius: 6px;
     border: 1px solid #ccc;
-}
-
-button {
-    background-color: #007bff;
-    color: white;
-    cursor: pointer;
-}
-
-button:hover {
-    background-color: #0056b3;
+    font-size: 14px;
 }
 
 table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 20px;
     text-align: center;
 }
 
