@@ -25,15 +25,7 @@ function fetchData() {
         .then(res => res.json())
         .then(result => {
             if (result.status === 'ok') {
-                // Беремо останні записи по кожному пристрою (найсвіжіші)
-                const latestByDevice = {};
-                result.data.forEach(entry => {
-                    const id = entry.device_id || 'unknown';
-                    if (!latestByDevice[id] || new Date(entry.timestamp) > new Date(latestByDevice[id].timestamp)) {
-                        latestByDevice[id] = entry;
-                    }
-                });
-                data = Object.values(latestByDevice);
+                data = result.data;  // Тепер беремо всі записи без фільтрації
                 populateDeviceFilter();
                 applyFilters();
             } else {
@@ -45,7 +37,7 @@ function fetchData() {
 
 function populateDeviceFilter() {
     const deviceFilter = document.getElementById('deviceFilter');
-    // Видаляємо всі крім "Усі пристрої"
+    // Видаляємо всі опції крім "Усі пристрої"
     deviceFilter.querySelectorAll('option:not([value="all"])').forEach(o => o.remove());
 
     const deviceIds = [...new Set(data.map(entry => entry.device_id))];
@@ -82,7 +74,6 @@ function renderTable(data) {
     data.forEach((entry, index) => {
         const temp = entry.temperature !== undefined ? entry.temperature.toFixed(1) : '-';
         const hum = entry.humidity !== undefined ? entry.humidity.toFixed(1) : '-';
-        // Вивід часу зі сервера або актуальний локальний час, якщо немає
         const timeStr = entry.timestamp ? new Date(entry.timestamp).toLocaleString() : new Date().toLocaleTimeString();
 
         const deviceName = friendlyNames[entry.device_id] || entry.device_id;
