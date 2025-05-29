@@ -2,21 +2,21 @@
 <html lang="uk">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Моніторинг IoT</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
     <div class="container">
         <h1>Моніторинг IoT-пристроїв</h1>
         <div class="filters">
-            <input type="number" id="rowNumber" placeholder="№ рядка">
-            <input type="number" id="tempMin" placeholder="Мін. температура">
-            <input type="number" id="tempMax" placeholder="Макс. температура">
-            <input type="number" id="humMin" placeholder="Мін. вологість">
-            <input type="number" id="humMax" placeholder="Макс. вологість">
+            <input type="number" id="rowNumber" placeholder="№ рядка" min="1" />
+            <input type="number" id="tempMin" placeholder="Мін. температура" step="0.1" />
+            <input type="number" id="tempMax" placeholder="Макс. температура" step="0.1" />
+            <input type="number" id="humMin" placeholder="Мін. вологість" step="0.1" />
+            <input type="number" id="humMax" placeholder="Макс. вологість" step="0.1" />
             <button id="clearFilters">Очистити фільтри</button>
         </div>
         <table id="dataTable">
@@ -30,7 +30,7 @@
                 </tr>
             </thead>
             <tbody>
-                <!-- Дані будуть додані JavaScript -->
+                <!-- Дані додасть JS -->
             </tbody>
         </table>
     </div>

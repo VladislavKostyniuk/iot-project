@@ -2,7 +2,7 @@ let data = [];
 
 window.addEventListener('DOMContentLoaded', () => {
     fetchData();
-    setInterval(fetchData, 10000);
+    setInterval(fetchData, 10000); // оновлення кожні 10 сек
 
     document.getElementById('rowNumber').addEventListener('input', applyFilters);
     document.getElementById('tempMin').addEventListener('input', applyFilters);
@@ -35,10 +35,10 @@ function applyFilters() {
 
     let filtered = data;
 
-    if (!isNaN(tempMin)) filtered = filtered.filter(e => e.temperature >= tempMin);
-    if (!isNaN(tempMax)) filtered = filtered.filter(e => e.temperature <= tempMax);
-    if (!isNaN(humMin)) filtered = filtered.filter(e => e.humidity >= humMin);
-    if (!isNaN(humMax)) filtered = filtered.filter(e => e.humidity <= humMax);
+    if (!isNaN(tempMin)) filtered = filtered.filter(e => e.temperature !== undefined && e.temperature >= tempMin);
+    if (!isNaN(tempMax)) filtered = filtered.filter(e => e.temperature !== undefined && e.temperature <= tempMax);
+    if (!isNaN(humMin)) filtered = filtered.filter(e => e.humidity !== undefined && e.humidity >= humMin);
+    if (!isNaN(humMax)) filtered = filtered.filter(e => e.humidity !== undefined && e.humidity <= humMax);
 
     if (!isNaN(rowNumber) && rowNumber >= 1 && rowNumber <= filtered.length) {
         filtered = [filtered[rowNumber - 1]];
@@ -50,9 +50,17 @@ function applyFilters() {
 function renderTable(filteredData) {
     const tbody = document.querySelector('#dataTable tbody');
     tbody.innerHTML = '';
+
+    if (filteredData.length === 0) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td colspan="5">Немає даних за заданими параметрами</td>`;
+        tbody.appendChild(tr);
+        return;
+    }
+
     filteredData.forEach((entry, index) => {
-        const temp = entry.temperature !== undefined ? entry.temperature.toFixed(1) : '-';
-        const hum = entry.humidity !== undefined ? entry.humidity.toFixed(1) : '-';
+        const temp = typeof entry.temperature === 'number' ? entry.temperature.toFixed(1) : '-';
+        const hum = typeof entry.humidity === 'number' ? entry.humidity.toFixed(1) : '-';
         const timeStr = entry.timestamp ? new Date(entry.timestamp).toLocaleString('uk-UA') : '-';
         const deviceId = entry.device_id || 'Невідомий';
 
