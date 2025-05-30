@@ -3,34 +3,35 @@
 
 <head>
     <meta charset="UTF-8" />
-    <title>Моніторинг пристроїв IoT</title>
+    <title>Пошук по ID</title>
     <link rel="stylesheet" href="styles.css" />
 </head>
 
 <body>
-    <h1>Моніторинг пристроїв IoT</h1>
 
-    <div class="filters">
-        <label for="idSearch">Пошук по ID:</label>
-        <input type="text" id="idSearch" placeholder="Введіть ID для пошуку..." />
+    <div class="container">
+        <h1>Пошук по ID</h1>
+
+        <div class="filters">
+            <input type="text" id="idFilter" placeholder="Введіть ID для пошуку..." />
+        </div>
+
+        <table id="dataTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Пристрій</th>
+                    <th>Температура</th>
+                    <th>Вологість</th>
+                    <th>Час</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Дані тут -->
+            </tbody>
+        </table>
     </div>
 
-    <table id="dataTable">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Пристрій</th>
-                <th>Температура (°C)</th>
-                <th>Вологість (%)</th>
-                <th>Час</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
-
-    <canvas id="chart" width="800" height="400"></canvas>
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="script.js"></script>
 </body>
 
