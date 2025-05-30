@@ -2,23 +2,37 @@
 <html lang="uk">
 
 <head>
-    <meta charset="UTF-8">
-    <title>IoT Dashboard</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Моніторинг пристроїв</title>
+    <!-- Підключення CSS через Flask -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 
 <body>
     <div class="container">
-        <h1>Моніторинг даних з IoT-пристроїв</h1>
+        <h1>Поточні дані з пристроїв</h1>
 
         <div class="filters">
-            <input type="number" id="rowNumber" placeholder="№ рядка">
-            <input type="number" id="tempMin" placeholder="Температура ≥">
-            <input type="number" id="tempMax" placeholder="Температура ≤">
-            <input type="number" id="humMin" placeholder="Вологість ≥">
-            <input type="number" id="humMax" placeholder="Вологість ≤">
-            <button id="clearFilters">Очистити</button>
+            <label for="deviceFilter">Пошук по пристроях:</label>
+            <select id="deviceFilter">
+                <option value="all">Усі пристрої</option>
+                <!-- Динамічно заповнюватиметься JS -->
+            </select>
+
+            <label for="tempMin">Мін. температура:</label>
+            <input type="number" id="tempMin" placeholder="°C" />
+
+            <label for="tempMax">Макс. температура:</label>
+            <input type="number" id="tempMax" placeholder="°C" />
+
+            <label for="humMin">Мін. вологість:</label>
+            <input type="number" id="humMin" placeholder="%" />
+
+            <label for="humMax">Макс. вологість:</label>
+            <input type="number" id="humMax" placeholder="%" />
+
+            <button id="clearFilters">Очистити фільтри</button>
         </div>
 
         <table id="dataTable">
@@ -32,19 +46,15 @@
                 </tr>
             </thead>
             <tbody>
+                <!-- Дані оновлюються JS -->
                 <tr>
                     <td colspan="5">Завантаження даних...</td>
                 </tr>
             </tbody>
         </table>
-
-        <h2>Графік температури</h2>
-        <canvas id="tempChart"></canvas>
-
-        <h2>Графік вологості</h2>
-        <canvas id="humChart"></canvas>
     </div>
 
+    <!-- Підключення JS через Flask -->
     <script src="{{ url_for('static', filename='main.js') }}"></script>
 </body>
 

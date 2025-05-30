@@ -1,98 +1,99 @@
+let data = [];
+
+const friendlyNames = {
+    'device_1': 'Теплиця 1',
+    'device_2': 'Теплиця 2',
+    'ESP_A1': 'Підвал A1',
+    'ESP_B2': 'Сарай B2',
+};
+
+window.addEventListener('DOMContentLoaded', () => {
+    fetchData();
+    setInterval(fetchData, 10000);
+
+    document.getElementById('clearFilters').addEventListener('click', clearFilters);
+    // Також повісити події на інші фільтри, щоб при зміні викликати applyFilters()
+    ['deviceFilter', 'tempMin', 'tempMax', 'humMin', 'humMax'].forEach(id => {
+        document.getElementById(id).addEventListener('input', applyFilters);
+    });
+});
+
 async function fetchData() {
-    const response = await fetch('/data');
-    const json = await response.json();
-    return json.data;
+    try {
+        const res = await fetch('/data'); // або твій реальний API
+        data = await res.json();
+        populateDeviceFilter();
+        applyFilters();
+    } catch (error) {
+        console.error('Помилка завантаження даних:', error);
+    }
 }
 
-function renderTable(data) {
-    const tbody = document.querySelector('#dataTable tbody');
-    tbody.innerHTML = '';
-    if (data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5">Даних не знайдено</td></tr>';
-        return;
-    }
+function populateDeviceFilter() {
+    const deviceFilter = document.getElementById('deviceFilter');
+    // Видаляємо всі опції, крім "all"
+    deviceFilter.querySelectorAll('option:not([value="all"])').forEach(o => o.remove());
 
-    data.forEach((item, index) => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${index + 1}</td>
-            <td>${item.device_id || '-'}</td>
-            <td>${item.temperature?.toFixed(1) ?? '-'}</td>
-            <td>${item.humidity?.toFixed(1) ?? '-'}</td>
-            <td>${new Date(item.timestamp || item._id).toLocaleString()}</td>
-        `;
-        tbody.appendChild(row);
+    const deviceIds = [...new Set(data.map(entry => entry.device_id))];
+    deviceIds.forEach(id => {
+        const option = document.createElement('option');
+        option.value = id;
+        option.textContent = friendlyNames[id] || id;
+        deviceFilter.appendChild(option);
     });
 }
 
-function applyFilters(data) {
-    const rowNumber = parseInt(document.getElementById('rowNumber').value);
+function applyFilters() {
+    const deviceFilter = document.getElementById('deviceFilter').value;
     const tempMin = parseFloat(document.getElementById('tempMin').value);
     const tempMax = parseFloat(document.getElementById('tempMax').value);
     const humMin = parseFloat(document.getElementById('humMin').value);
     const humMax = parseFloat(document.getElementById('humMax').value);
 
-    return data.filter((item, index) => {
-        const temp = item.temperature;
-        const hum = item.humidity;
-
-        if (!isNaN(rowNumber) && rowNumber !== index + 1) return false;
-        if (!isNaN(tempMin) && temp < tempMin) return false;
-        if (!isNaN(tempMax) && temp > tempMax) return false;
-        if (!isNaN(humMin) && hum < humMin) return false;
-        if (!isNaN(humMax) && hum > humMax) return false;
-
+    let filtered = data.filter(entry => {
+        if (deviceFilter !== 'all' && entry.device_id !== deviceFilter) return false;
+        if (!isNaN(tempMin) && entry.temperature < tempMin) return false;
+        if (!isNaN(tempMax) && entry.temperature > tempMax) return false;
+        if (!isNaN(humMin) && entry.humidity < humMin) return false;
+        if (!isNaN(humMax) && entry.humidity > humMax) return false;
         return true;
     });
+
+    renderTable(filtered);
 }
 
-function drawCharts(data) {
-    const labels = data.map((d, i) => i + 1);
-    const temperatures = data.map(d => d.temperature);
-    const humidities = data.map(d => d.humidity);
+function renderTable(filteredData) {
+    const tbody = document.querySelector('#dataTable tbody');
+    tbody.innerHTML = '';
 
-    new Chart(document.getElementById('tempChart'), {
-        type: 'line',
-        data: {
-            labels,
-            datasets: [{
-                label: 'Температура (°C)',
-                data: temperatures,
-                borderColor: 'red',
-                fill: false
-            }]
-        }
-    });
+    if (filteredData.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5">Дані не знайдені</td></tr>';
+        return;
+    }
 
-    new Chart(document.getElementById('humChart'), {
-        type: 'line',
-        data: {
-            labels,
-            datasets: [{
-                label: 'Вологість (%)',
-                data: humidities,
-                borderColor: 'blue',
-                fill: false
-            }]
-        }
+    filteredData.forEach((entry, index) => {
+        const temp = entry.temperature !== undefined ? entry.temperature.toFixed(1) : '-';
+        const hum = entry.humidity !== undefined ? entry.humidity.toFixed(1) : '-';
+        const timeStr = entry.timestamp ? new Date(entry.timestamp).toLocaleString() : '-';
+        const deviceName = friendlyNames[entry.device_id] || entry.device_id;
+
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${index + 1}</td>
+            <td>${deviceName}</td>
+            <td>${temp}</td>
+            <td>${hum}</td>
+            <td>${timeStr}</td>
+        `;
+        tbody.appendChild(row);
     });
 }
 
-async function init() {
-    let data = await fetchData();
-    renderTable(data);
-    drawCharts(data);
-
-    const inputs = document.querySelectorAll('.filters input');
-    inputs.forEach(input => input.addEventListener('input', () => {
-        const filtered = applyFilters(data);
-        renderTable(filtered);
-    }));
-
-    document.getElementById('clearFilters').addEventListener('click', () => {
-        inputs.forEach(input => input.value = '');
-        renderTable(data);
-    });
+function clearFilters() {
+    document.getElementById('deviceFilter').value = 'all';
+    document.getElementById('tempMin').value = '';
+    document.getElementById('tempMax').value = '';
+    document.getElementById('humMin').value = '';
+    document.getElementById('humMax').value = '';
+    applyFilters();
 }
-
-init();
