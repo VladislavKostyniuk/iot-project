@@ -16,17 +16,28 @@ function fetchData() {
     fetch('/data')
         .then(res => res.json())
         .then(result => {
-            if (result.status === 'ok') {
+            if (result.status === 'ok' && Array.isArray(result.data)) {
                 data = result.data;
                 applyFilters();
             } else {
-                console.error('Помилка отримання даних:', result.message);
+                data = [];
+                renderTable([]);
+                console.warn('Дані відсутні або некоректні.');
             }
         })
-        .catch(err => console.error('Помилка fetch:', err));
+        .catch(err => {
+            console.error('Помилка fetch:', err);
+            data = [];
+            renderTable([]);
+        });
 }
 
 function applyFilters() {
+    if (!Array.isArray(data) || data.length === 0) {
+        renderTable([]);
+        return;
+    }
+
     const rowNumber = parseInt(document.getElementById('rowNumber').value);
     const tempMin = parseFloat(document.getElementById('tempMin').value);
     const tempMax = parseFloat(document.getElementById('tempMax').value);
@@ -35,10 +46,10 @@ function applyFilters() {
 
     let filtered = data;
 
-    if (!isNaN(tempMin)) filtered = filtered.filter(e => e.temperature !== undefined && e.temperature >= tempMin);
-    if (!isNaN(tempMax)) filtered = filtered.filter(e => e.temperature !== undefined && e.temperature <= tempMax);
-    if (!isNaN(humMin)) filtered = filtered.filter(e => e.humidity !== undefined && e.humidity >= humMin);
-    if (!isNaN(humMax)) filtered = filtered.filter(e => e.humidity !== undefined && e.humidity <= humMax);
+    if (!isNaN(tempMin)) filtered = filtered.filter(e => e.temperature >= tempMin);
+    if (!isNaN(tempMax)) filtered = filtered.filter(e => e.temperature <= tempMax);
+    if (!isNaN(humMin)) filtered = filtered.filter(e => e.humidity >= humMin);
+    if (!isNaN(humMax)) filtered = filtered.filter(e => e.humidity <= humMax);
 
     if (!isNaN(rowNumber) && rowNumber >= 1 && rowNumber <= filtered.length) {
         filtered = [filtered[rowNumber - 1]];
@@ -51,9 +62,9 @@ function renderTable(filteredData) {
     const tbody = document.querySelector('#dataTable tbody');
     tbody.innerHTML = '';
 
-    if (filteredData.length === 0) {
+    if (!filteredData || filteredData.length === 0) {
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td colspan="5">Немає даних за заданими параметрами</td>`;
+        tr.innerHTML = `<td colspan="5">Дані відсутні</td>`;
         tbody.appendChild(tr);
         return;
     }
