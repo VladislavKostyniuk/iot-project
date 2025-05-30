@@ -2,7 +2,7 @@ let data = [];
 
 window.addEventListener('DOMContentLoaded', () => {
     fetchData();
-    setInterval(fetchData, 10000); // оновлення кожні 10 сек
+    setInterval(fetchData, 10000); // оновлення кожні 10 секунд
 
     document.getElementById('rowNumber').addEventListener('input', applyFilters);
     document.getElementById('tempMin').addEventListener('input', applyFilters);
@@ -16,18 +16,14 @@ function fetchData() {
     fetch('/data')
         .then(res => res.json())
         .then(result => {
-            if (result.status === 'ok' && Array.isArray(result.data)) {
+            if (result.status === 'ok') {
                 data = result.data;
                 applyFilters();
             } else {
-                data = [];
                 renderTable([]);
-                console.warn('Дані відсутні або некоректні.');
             }
         })
-        .catch(err => {
-            console.error('Помилка fetch:', err);
-            data = [];
+        .catch(() => {
             renderTable([]);
         });
 }

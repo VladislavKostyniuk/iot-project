@@ -2,39 +2,42 @@
 <html lang="uk">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Моніторинг IoT</title>
-    <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8">
+    <title>IoT Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 
 <body>
     <div class="container">
-        <h1>Моніторинг IoT-пристроїв</h1>
+        <h1>Моніторинг даних з IoT-пристроїв</h1>
         <div class="filters">
-            <input type="number" id="rowNumber" placeholder="№ рядка" min="1" />
-            <input type="number" id="tempMin" placeholder="Мін. температура" step="0.1" />
-            <input type="number" id="tempMax" placeholder="Макс. температура" step="0.1" />
-            <input type="number" id="humMin" placeholder="Мін. вологість" step="0.1" />
-            <input type="number" id="humMax" placeholder="Макс. вологість" step="0.1" />
-            <button id="clearFilters">Очистити фільтри</button>
+            <input type="number" id="rowNumber" placeholder="№ рядка">
+            <input type="number" id="tempMin" placeholder="Температура ≥">
+            <input type="number" id="tempMax" placeholder="Температура ≤">
+            <input type="number" id="humMin" placeholder="Вологість ≥">
+            <input type="number" id="humMax" placeholder="Вологість ≤">
+            <button id="clearFilters">Очистити</button>
         </div>
+
         <table id="dataTable">
             <thead>
                 <tr>
                     <th>№</th>
-                    <th>ID Пристрою</th>
+                    <th>Пристрій</th>
                     <th>Температура (°C)</th>
                     <th>Вологість (%)</th>
                     <th>Час</th>
                 </tr>
             </thead>
             <tbody>
-                <!-- Дані додасть JS -->
+                <tr>
+                    <td colspan="5">Завантаження даних...</td>
+                </tr>
             </tbody>
         </table>
     </div>
-    <script src="main.js"></script>
+
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
 </body>
 
 </html>
