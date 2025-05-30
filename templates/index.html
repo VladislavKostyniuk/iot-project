@@ -5,11 +5,13 @@
     <meta charset="UTF-8">
     <title>IoT Dashboard</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
     <div class="container">
         <h1>Моніторинг даних з IoT-пристроїв</h1>
+
         <div class="filters">
             <input type="number" id="rowNumber" placeholder="№ рядка">
             <input type="number" id="tempMin" placeholder="Температура ≥">
@@ -35,6 +37,12 @@
                 </tr>
             </tbody>
         </table>
+
+        <h2>Графік температури</h2>
+        <canvas id="tempChart"></canvas>
+
+        <h2>Графік вологості</h2>
+        <canvas id="humChart"></canvas>
     </div>
 
     <script src="{{ url_for('static', filename='main.js') }}"></script>
