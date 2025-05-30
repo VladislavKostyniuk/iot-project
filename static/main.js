@@ -4,13 +4,8 @@ let data = [];
 document.addEventListener('DOMContentLoaded', () => {
     fetchData();
     setInterval(fetchData, 10000); // оновлення кожні 10 секунд
-
-    document.getElementById('deviceFilter').addEventListener('change', applyFilters);
-    document.getElementById('timeFilter').addEventListener('change', applyFilters);
-    document.getElementById('tempMin').addEventListener('input', applyFilters);
-    document.getElementById('tempMax').addEventListener('input', applyFilters);
-    document.getElementById('humMin').addEventListener('input', applyFilters);
-    document.getElementById('humMax').addEventListener('input', applyFilters);
+    document.getElementById('idSearch').addEventListener('input', applyFilters);
+    setInterval(updateTimes, 1000); // оновлюємо час у таблиці щосекунди
 });
 
 function fetchData() {
@@ -24,7 +19,6 @@ function fetchData() {
                     }
                     return entry;
                 });
-                populateDeviceFilter();
                 applyFilters();
             } else {
                 console.error('Помилка отримання даних:', result.message);
@@ -33,78 +27,63 @@ function fetchData() {
         .catch(err => console.error('Помилка fetch:', err));
 }
 
-function populateDeviceFilter() {
-    const deviceFilter = document.getElementById('deviceFilter');
-    deviceFilter.querySelectorAll('option:not([value="all"])').forEach(o => o.remove());
-
-    const deviceIds = [...new Set(data.map(entry => entry.device_id))];
-    deviceIds.forEach((id, i) => {
-        const option = document.createElement('option');
-        option.value = id;
-        option.textContent = `Пристрій ${i + 1}`;
-        deviceFilter.appendChild(option);
-    });
-}
-
 function applyFilters() {
-    const deviceFilterValue = document.getElementById('deviceFilter').value;
-    const timeFilterValue = document.getElementById('timeFilter').value;
-    const tempMin = parseFloat(document.getElementById('tempMin').value);
-    const tempMax = parseFloat(document.getElementById('tempMax').value);
-    const humMin = parseFloat(document.getElementById('humMin').value);
-    const humMax = parseFloat(document.getElementById('humMax').value);
+    const idSearchValue = document.getElementById('idSearch').value.trim().toLowerCase();
 
-    const now = Date.now();
     let filtered = data;
-
-    if (deviceFilterValue !== 'all') {
-        filtered = filtered.filter(entry => entry.device_id === deviceFilterValue);
-    }
-
-    if (timeFilterValue !== 'all') {
-        const minutes = parseInt(timeFilterValue);
-        const cutoff = now - minutes * 60 * 1000;
-        filtered = filtered.filter(entry => new Date(entry.timestamp).getTime() >= cutoff);
-    }
-
-    if (!isNaN(tempMin)) {
-        filtered = filtered.filter(entry => entry.temperature !== undefined && entry.temperature >= tempMin);
-    }
-    if (!isNaN(tempMax)) {
-        filtered = filtered.filter(entry => entry.temperature !== undefined && entry.temperature <= tempMax);
-    }
-    if (!isNaN(humMin)) {
-        filtered = filtered.filter(entry => entry.humidity !== undefined && entry.humidity >= humMin);
-    }
-    if (!isNaN(humMax)) {
-        filtered = filtered.filter(entry => entry.humidity !== undefined && entry.humidity <= humMax);
+    if (idSearchValue !== '') {
+        filtered = filtered.filter(entry => entry._id.toLowerCase().includes(idSearchValue));
     }
 
     renderTable(filtered);
     renderChart(filtered);
 }
 
-function renderTable(data) {
+let displayedData = [];
+
+function renderTable(dataToRender) {
     const tbody = document.querySelector('#dataTable tbody');
     tbody.innerHTML = '';
-    data.forEach((entry, index) => {
+    displayedData = dataToRender;
+
+    dataToRender.forEach((entry, index) => {
         const temp = entry.temperature !== undefined ? entry.temperature.toFixed(1) : '-';
         const hum = entry.humidity !== undefined ? entry.humidity.toFixed(1) : '-';
-        const timeStr = entry.timestamp ? new Date(entry.timestamp).toLocaleString() : '-';
 
-        // Покажемо ім'я пристрою у форматі "Пристрій N", де N - номер з фільтрації
-        const deviceIds = [...new Set(data.map(e => e.device_id))];
-        const deviceIndex = deviceIds.indexOf(entry.device_id) + 1;
+        const timeCellId = `time-${index}`;
 
         const row = document.createElement('tr');
         row.innerHTML = `
-          <td>${index + 1}</td>
-          <td>Пристрій ${deviceIndex > 0 ? deviceIndex : entry.device_id}</td>
-          <td>${temp}</td>
-          <td>${hum}</td>
-          <td>${timeStr}</td>
+            <td>${entry._id}</td>
+            <td>${entry.device_id}</td>
+            <td>${temp}</td>
+            <td>${hum}</td>
+            <td id="${timeCellId}">${formatTimeRelative(entry.timestamp)}</td>
         `;
         tbody.appendChild(row);
+    });
+}
+
+function formatTimeRelative(timestamp) {
+    if (!timestamp) return '-';
+    const now = Date.now();
+    const time = new Date(timestamp).getTime();
+    const diff = now - time;
+
+    if (diff < 1000) return 'щойно';
+    if (diff < 60000) return Math.floor(diff / 1000) + ' сек тому';
+    if (diff < 3600000) return Math.floor(diff / 60000) + ' хв тому';
+    if (diff < 86400000) return Math.floor(diff / 3600000) + ' год тому';
+
+    return new Date(timestamp).toLocaleString();
+}
+
+function updateTimes() {
+    displayedData.forEach((entry, index) => {
+        const timeCell = document.getElementById(`time-${index}`);
+        if (timeCell) {
+            timeCell.textContent = formatTimeRelative(entry.timestamp);
+        }
     });
 }
 
