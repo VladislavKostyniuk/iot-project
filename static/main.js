@@ -1,115 +1,100 @@
-let chart;
-let data = [];
+// Дані IoT-пристроїв (приклад)
+const iotData = [
+    // Приклад записів, де є timestamp, device, temperature, humidity
+    { device: 'Device 1', temperature: 22.5, humidity: 45, timestamp: '2025-05-30T10:00:00Z' },
+    { device: 'Device 2', temperature: 23.1, humidity: 43, timestamp: '2025-05-30T10:05:00Z' },
+    { device: 'Device 1', temperature: 22.7, humidity: 46, timestamp: '2025-05-30T10:10:00Z' },
+    // ...
+];
 
-document.addEventListener('DOMContentLoaded', () => {
-    fetchData();
-    setInterval(fetchData, 10000); // оновлення кожні 10 секунд
-
-    document.getElementById('tempMin').addEventListener('input', applyFilters);
-    document.getElementById('tempMax').addEventListener('input', applyFilters);
-    document.getElementById('humMin').addEventListener('input', applyFilters);
-    document.getElementById('humMax').addEventListener('input', applyFilters);
-});
-
-function fetchData() {
-    fetch('/data')
-        .then(response => response.json())
-        .then(result => {
-            if (result.status === 'ok') {
-                data = result.data.map((entry, index) => {
-                    if (!entry.device_id) {
-                        entry.device_id = "device_" + (index + 1);
-                    }
-                    return entry;
-                });
-                applyFilters();
-            } else {
-                console.error('Помилка отримання даних:', result.message);
-            }
-        })
-        .catch(err => console.error('Помилка fetch:', err));
-}
-
-function applyFilters() {
-    const tempMin = parseFloat(document.getElementById('tempMin').value);
-    const tempMax = parseFloat(document.getElementById('tempMax').value);
-    const humMin = parseFloat(document.getElementById('humMin').value);
-    const humMax = parseFloat(document.getElementById('humMax').value);
-
-    let filtered = data;
-
-    if (!isNaN(tempMin)) {
-        filtered = filtered.filter(entry => entry.temperature !== undefined && entry.temperature >= tempMin);
-    }
-    if (!isNaN(tempMax)) {
-        filtered = filtered.filter(entry => entry.temperature !== undefined && entry.temperature <= tempMax);
-    }
-    if (!isNaN(humMin)) {
-        filtered = filtered.filter(entry => entry.humidity !== undefined && entry.humidity >= humMin);
-    }
-    if (!isNaN(humMax)) {
-        filtered = filtered.filter(entry => entry.humidity !== undefined && entry.humidity <= humMax);
-    }
-
-    renderTable(filtered);
-    renderChart(filtered);
-}
-
+// Функція рендерингу таблиці (без колонки Час)
 function renderTable(data) {
-    const tbody = document.querySelector('#dataTable tbody');
-    tbody.innerHTML = '';
-    data.forEach((entry, index) => {
-        const temp = entry.temperature !== undefined ? entry.temperature.toFixed(1) : '-';
-        const hum = entry.humidity !== undefined ? entry.humidity.toFixed(1) : '-';
+    const tableBody = document.querySelector('#data-table tbody');
+    tableBody.innerHTML = '';
 
-        // Показуємо ім'я пристрою, або device_id, якщо немає індексу
-        const deviceIndex = index + 1;
-
+    data.forEach(entry => {
         const row = document.createElement('tr');
-        row.innerHTML = `
-          <td>${deviceIndex}</td>
-          <td>${entry.device_id}</td>
-          <td>${temp}</td>
-          <td>${hum}</td>
-        `;
-        tbody.appendChild(row);
+
+        // Колонка "Пристрій"
+        const deviceCell = document.createElement('td');
+        deviceCell.textContent = entry.device;
+        row.appendChild(deviceCell);
+
+        // Колонка "Температура"
+        const tempCell = document.createElement('td');
+        tempCell.textContent = entry.temperature.toFixed(1);
+        row.appendChild(tempCell);
+
+        // Колонка "Вологість"
+        const humidityCell = document.createElement('td');
+        humidityCell.textContent = entry.humidity.toFixed(1);
+        row.appendChild(humidityCell);
+
+        tableBody.appendChild(row);
     });
 }
 
+// Функція рендерингу графіка за допомогою Chart.js
 function renderChart(data) {
-    const ctx = document.getElementById('chart').getContext('2d');
-    if (chart) chart.destroy();
+    const ctx = document.getElementById('myChart').getContext('2d');
 
-    const labels = data.map((entry, i) => `Запис ${i + 1}`);
-    const tempData = data.map(entry => entry.temperature);
-    const humData = data.map(entry => entry.humidity);
+    // Відсортуємо дані за часом (щоб графік був коректним)
+    const sortedData = data.slice().sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 
-    chart = new Chart(ctx, {
+    const labels = sortedData.map(entry => {
+        const d = new Date(entry.timestamp);
+        // Формат для підписів (можна змінити під свої потреби)
+        return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    });
+
+    const temperatures = sortedData.map(entry => entry.temperature);
+    const humidities = sortedData.map(entry => entry.humidity);
+
+    // Якщо графік вже існує — видаляємо старий (щоб оновити)
+    if (window.myChartInstance) {
+        window.myChartInstance.destroy();
+    }
+
+    window.myChartInstance = new Chart(ctx, {
         type: 'line',
         data: {
             labels: labels,
             datasets: [
                 {
                     label: 'Температура (°C)',
-                    data: tempData,
-                    borderColor: 'rgb(255, 99, 132)',
+                    data: temperatures,
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
                     fill: false,
-                    tension: 0.1
+                    tension: 0.3,
                 },
                 {
                     label: 'Вологість (%)',
-                    data: humData,
-                    borderColor: 'rgb(54, 162, 235)',
+                    data: humidities,
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
                     fill: false,
-                    tension: 0.1
+                    tension: 0.3,
                 }
             ]
         },
         options: {
             responsive: true,
+            interaction: {
+                mode: 'index',
+                intersect: false,
+            },
+            stacked: false,
             scales: {
-                y: { beginAtZero: true }
+                y: {
+                    beginAtZero: true,
+                }
             }
         }
     });
 }
+
+// Початковий рендер
+renderTable(iotData);
+renderChart(iotData);
+  
