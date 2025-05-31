@@ -5,7 +5,8 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchData();
     setInterval(fetchData, 10000); // оновлення кожні 10 секунд
 
-    document.getElementById('deviceFilter').addEventListener('change', applyFilters);
+    // Припускаю, що тепер фільтр за id має id="idFilter"
+    document.getElementById('idFilter').addEventListener('change', applyFilters);
     document.getElementById('timeFilter').addEventListener('change', applyFilters);
     document.getElementById('tempMin').addEventListener('input', applyFilters);
     document.getElementById('tempMax').addEventListener('input', applyFilters);
@@ -24,7 +25,7 @@ function fetchData() {
                     }
                     return entry;
                 });
-                populateDeviceFilter();
+                populateIdFilter();
                 applyFilters();
             } else {
                 console.error('Помилка отримання даних:', result.message);
@@ -33,21 +34,23 @@ function fetchData() {
         .catch(err => console.error('Помилка fetch:', err));
 }
 
-function populateDeviceFilter() {
-    const deviceFilter = document.getElementById('deviceFilter');
-    deviceFilter.querySelectorAll('option:not([value="all"])').forEach(o => o.remove());
+function populateIdFilter() {
+    const idFilter = document.getElementById('idFilter');
+    // Видаляємо всі опції, крім "all"
+    idFilter.querySelectorAll('option:not([value="all"])').forEach(o => o.remove());
 
-    const deviceIds = [...new Set(data.map(entry => entry.device_id))];
-    deviceIds.forEach((id, i) => {
+    // Отримаємо унікальні id
+    const ids = [...new Set(data.map(entry => entry.id))];
+    ids.forEach(id => {
         const option = document.createElement('option');
         option.value = id;
-        option.textContent = `Пристрій ${i + 1}`;
-        deviceFilter.appendChild(option);
+        option.textContent = id;
+        idFilter.appendChild(option);
     });
 }
 
 function applyFilters() {
-    const deviceFilterValue = document.getElementById('deviceFilter').value;
+    const idFilterValue = document.getElementById('idFilter').value;
     const timeFilterValue = document.getElementById('timeFilter').value;
     const tempMin = parseFloat(document.getElementById('tempMin').value);
     const tempMax = parseFloat(document.getElementById('tempMax').value);
@@ -57,8 +60,8 @@ function applyFilters() {
     const now = Date.now();
     let filtered = data;
 
-    if (deviceFilterValue !== 'all') {
-        filtered = filtered.filter(entry => entry.device_id === deviceFilterValue);
+    if (idFilterValue !== 'all') {
+        filtered = filtered.filter(entry => entry.id === idFilterValue);
     }
 
     if (timeFilterValue !== 'all') {
@@ -92,14 +95,11 @@ function renderTable(data) {
         const hum = entry.humidity !== undefined ? entry.humidity.toFixed(1) : '-';
         const timeStr = entry.timestamp ? new Date(entry.timestamp).toLocaleString() : '-';
 
-        // Покажемо ім'я пристрою у форматі "Пристрій N", де N - номер з фільтрації
-        const deviceIds = [...new Set(data.map(e => e.device_id))];
-        const deviceIndex = deviceIds.indexOf(entry.device_id) + 1;
-
+        // Показуємо id напряму
         const row = document.createElement('tr');
         row.innerHTML = `
           <td>${index + 1}</td>
-          <td>Пристрій ${deviceIndex > 0 ? deviceIndex : entry.device_id}</td>
+          <td>${entry.id}</td>
           <td>${temp}</td>
           <td>${hum}</td>
           <td>${timeStr}</td>
