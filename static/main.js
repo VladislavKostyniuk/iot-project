@@ -5,9 +5,10 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchData();
     setInterval(fetchData, 10000); // оновлення кожні 10 секунд
 
-    // Припускаю, що тепер фільтр за id має id="idFilter"
+    // Фільтр по id
     document.getElementById('idFilter').addEventListener('change', applyFilters);
-    document.getElementById('timeFilter').addEventListener('change', applyFilters);
+
+    // Фільтри по температурі і вологості
     document.getElementById('tempMin').addEventListener('input', applyFilters);
     document.getElementById('tempMax').addEventListener('input', applyFilters);
     document.getElementById('humMin').addEventListener('input', applyFilters);
@@ -19,12 +20,7 @@ function fetchData() {
         .then(response => response.json())
         .then(result => {
             if (result.status === 'ok') {
-                data = result.data.map((entry, index) => {
-                    if (!entry.device_id) {
-                        entry.device_id = "device_" + (index + 1);
-                    }
-                    return entry;
-                });
+                data = result.data; // без змін device_id
                 populateIdFilter();
                 applyFilters();
             } else {
@@ -51,23 +47,15 @@ function populateIdFilter() {
 
 function applyFilters() {
     const idFilterValue = document.getElementById('idFilter').value;
-    const timeFilterValue = document.getElementById('timeFilter').value;
     const tempMin = parseFloat(document.getElementById('tempMin').value);
     const tempMax = parseFloat(document.getElementById('tempMax').value);
     const humMin = parseFloat(document.getElementById('humMin').value);
     const humMax = parseFloat(document.getElementById('humMax').value);
 
-    const now = Date.now();
     let filtered = data;
 
     if (idFilterValue !== 'all') {
         filtered = filtered.filter(entry => entry.id === idFilterValue);
-    }
-
-    if (timeFilterValue !== 'all') {
-        const minutes = parseInt(timeFilterValue);
-        const cutoff = now - minutes * 60 * 1000;
-        filtered = filtered.filter(entry => new Date(entry.timestamp).getTime() >= cutoff);
     }
 
     if (!isNaN(tempMin)) {
@@ -95,7 +83,6 @@ function renderTable(data) {
         const hum = entry.humidity !== undefined ? entry.humidity.toFixed(1) : '-';
         const timeStr = entry.timestamp ? new Date(entry.timestamp).toLocaleString() : '-';
 
-        // Показуємо id напряму
         const row = document.createElement('tr');
         row.innerHTML = `
           <td>${index + 1}</td>
@@ -112,7 +99,7 @@ function renderChart(data) {
     const ctx = document.getElementById('chart').getContext('2d');
     if (chart) chart.destroy();
 
-    const labels = data.map(entry => new Date(entry.timestamp).toLocaleTimeString());
+    const labels = data.map(entry => entry.timestamp ? new Date(entry.timestamp).toLocaleTimeString() : '');
     const tempData = data.map(entry => entry.temperature);
     const humData = data.map(entry => entry.humidity);
 
