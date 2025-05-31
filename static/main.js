@@ -3,14 +3,28 @@ let filteredData = [];
 let tempChart, humChart;
 
 async function fetchData() {
+    const deviceNames = {
+        1: 'Город',
+        2: 'Сарай',
+        3: 'Дім',
+        4: 'Гараж',
+        5: 'Сад',
+        6: 'Підвал',
+        7: 'Теплиця',
+        8: 'Офіс',
+        9: 'Комора',
+        10: 'Балкон'
+    };
+
     const response = await fetch('/data?limit=50');
     const json = await response.json();
     if (json.status === 'ok') {
         allData = json.data.map((item, index) => {
+            const id = index + 1;
             return {
                 ...item,
-                _customId: (index + 1).toString(),
-                device_id: `Пристрій ${parseInt(item.device_id.replace('device_00', ''))}`
+                _customId: id.toString(),
+                device_id: deviceNames[id] || `Пристрій ${id}`
             };
         });
         filteredData = [...allData];
@@ -20,6 +34,7 @@ async function fetchData() {
         alert('Помилка завантаження даних');
     }
 }
+
 
 function updateTable(data) {
     const tbody = document.querySelector('#data-table tbody');
