@@ -2,38 +2,40 @@
 <html lang="uk">
 
 <head>
-    <meta charset="UTF-8" />
-    <title>Пошук по ID</title>
-    <link rel="stylesheet" href="styles.css" />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <meta charset="UTF-8">
+    <title>Фільтр за пристроями та ID</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
+    <h1>Дані з IoT-пристроїв</h1>
 
-    <div class="container">
-        <h1>Пошук по ID</h1>
+    <div class="filters">
+        <label for="deviceFilter">Фільтр за пристроєм:</label>
+        <select id="deviceFilter">
+            <option value="">Усі пристрої</option>
+        </select>
 
-        <div class="filters">
-            <input type="text" id="idFilter" placeholder="Введіть ID для пошуку..." />
-        </div>
-
-        <table id="dataTable">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Пристрій</th>
-                    <th>Температура</th>
-                    <th>Вологість</th>
-                    <th>Час</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Дані тут -->
-            </tbody>
-        </table>
-
-        <canvas id="chart" style="max-width: 100%; margin-top: 20px;"></canvas>
+        <label for="idFilter">Фільтр за ID:</label>
+        <select id="idFilter">
+            <option value="">Усі ID</option>
+        </select>
     </div>
+
+    <table id="dataTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Пристрій</th>
+                <th>Температура</th>
+                <th>Вологість</th>
+                <th>Час</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Дані з JavaScript -->
+        </tbody>
+    </table>
 
     <script src="script.js"></script>
 </body>
