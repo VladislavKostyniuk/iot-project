@@ -1,100 +1,103 @@
-// Дані IoT-пристроїв (приклад)
-const iotData = [
-    // Приклад записів, де є timestamp, device, temperature, humidity
-    { device: 'Device 1', temperature: 22.5, humidity: 45, timestamp: '2025-05-30T10:00:00Z' },
-    { device: 'Device 2', temperature: 23.1, humidity: 43, timestamp: '2025-05-30T10:05:00Z' },
-    { device: 'Device 1', temperature: 22.7, humidity: 46, timestamp: '2025-05-30T10:10:00Z' },
-    // ...
-];
+let allData = [];
+let filteredData = [];
+let tempChart, humChart;
 
-// Функція рендерингу таблиці (без колонки Час)
-function renderTable(data) {
-    const tableBody = document.querySelector('#data-table tbody');
-    tableBody.innerHTML = '';
+async function fetchData() {
+    const response = await fetch('/data?limit=50');  // більше даних для кращого фільтру
+    const json = await response.json();
+    if (json.status === 'ok') {
+        allData = json.data;
+        filteredData = [...allData];
+        updateTable(filteredData);
+        drawCharts(filteredData);
+    } else {
+        alert('Помилка завантаження даних');
+    }
+}
 
-    data.forEach(entry => {
-        const row = document.createElement('tr');
-
-        // Колонка "Пристрій"
-        const deviceCell = document.createElement('td');
-        deviceCell.textContent = entry.device;
-        row.appendChild(deviceCell);
-
-        // Колонка "Температура"
-        const tempCell = document.createElement('td');
-        tempCell.textContent = entry.temperature.toFixed(1);
-        row.appendChild(tempCell);
-
-        // Колонка "Вологість"
-        const humidityCell = document.createElement('td');
-        humidityCell.textContent = entry.humidity.toFixed(1);
-        row.appendChild(humidityCell);
-
-        tableBody.appendChild(row);
+function updateTable(data) {
+    const tbody = document.querySelector('#data-table tbody');
+    tbody.innerHTML = '';
+    data.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${item._id}</td>
+            <td>${item.device_id}</td>
+            <td>${item.temperature.toFixed(2)}</td>
+            <td>${item.humidity.toFixed(2)}</td>
+        `;
+        tbody.appendChild(tr);
     });
 }
 
-// Функція рендерингу графіка за допомогою Chart.js
-function renderChart(data) {
-    const ctx = document.getElementById('myChart').getContext('2d');
+function drawCharts(data) {
+    const labels = data.map(d => new Date(parseInt(d._id.substring(0, 8), 16) * 1000).toLocaleTimeString());
+    const temps = data.map(d => d.temperature);
+    const hums = data.map(d => d.humidity);
 
-    // Відсортуємо дані за часом (щоб графік був коректним)
-    const sortedData = data.slice().sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    const tempCtx = document.getElementById('tempChart').getContext('2d');
+    const humCtx = document.getElementById('humChart').getContext('2d');
 
-    const labels = sortedData.map(entry => {
-        const d = new Date(entry.timestamp);
-        // Формат для підписів (можна змінити під свої потреби)
-        return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    });
+    if (tempChart) tempChart.destroy();
+    if (humChart) humChart.destroy();
 
-    const temperatures = sortedData.map(entry => entry.temperature);
-    const humidities = sortedData.map(entry => entry.humidity);
-
-    // Якщо графік вже існує — видаляємо старий (щоб оновити)
-    if (window.myChartInstance) {
-        window.myChartInstance.destroy();
-    }
-
-    window.myChartInstance = new Chart(ctx, {
+    tempChart = new Chart(tempCtx, {
         type: 'line',
         data: {
             labels: labels,
-            datasets: [
-                {
-                    label: 'Температура (°C)',
-                    data: temperatures,
-                    borderColor: 'rgba(255, 99, 132, 1)',
-                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                    fill: false,
-                    tension: 0.3,
-                },
-                {
-                    label: 'Вологість (%)',
-                    data: humidities,
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                    fill: false,
-                    tension: 0.3,
-                }
-            ]
+            datasets: [{
+                label: 'Температура (°C)',
+                data: temps,
+                borderColor: 'rgba(255, 99, 132, 1)',
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                fill: true,
+                tension: 0.3
+            }]
         },
-        options: {
-            responsive: true,
-            interaction: {
-                mode: 'index',
-                intersect: false,
-            },
-            stacked: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                }
-            }
-        }
+        options: { responsive: true, scales: { y: { beginAtZero: true } } }
+    });
+
+    humChart = new Chart(humCtx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Вологість (%)',
+                data: hums,
+                borderColor: 'rgba(54, 162, 235, 1)',
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: { responsive: true, scales: { y: { beginAtZero: true } } }
     });
 }
 
-// Початковий рендер
-renderTable(iotData);
-renderChart(iotData);
-  
+function applyTemperatureFilter() {
+    const minTemp = parseFloat(document.getElementById('minTemp').value);
+    const maxTemp = parseFloat(document.getElementById('maxTemp').value);
+
+    filteredData = allData.filter(item => {
+        if (!isNaN(minTemp) && item.temperature < minTemp) return false;
+        if (!isNaN(maxTemp) && item.temperature > maxTemp) return false;
+        return true;
+    });
+
+    updateTable(filteredData);
+    drawCharts(filteredData);
+}
+
+function resetFilter() {
+    document.getElementById('minTemp').value = '';
+    document.getElementById('maxTemp').value = '';
+    filteredData = [...allData];
+    updateTable(filteredData);
+    drawCharts(filteredData);
+}
+
+// Початкове завантаження
+fetchData();
+
+// Оновлення даних кожні 15 секунд
+setInterval(fetchData, 15000);

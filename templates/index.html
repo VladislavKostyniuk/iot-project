@@ -4,152 +4,90 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>IoT Дані - Таблиця і Графік</title>
+    <title>IoT Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
+            max-width: 900px;
+            margin: 20px auto;
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        h1 {
+            color: #333;
         }
 
         table {
             border-collapse: collapse;
             width: 100%;
-            max-width: 600px;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
+            background: white;
         }
 
         th,
         td {
-            border: 1px solid #aaa;
             padding: 8px 12px;
+            border: 1px solid #ddd;
             text-align: center;
         }
 
-        th {
-            background-color: #f4f4f4;
+        input[type=number] {
+            width: 80px;
+            padding: 5px;
+            margin-right: 10px;
         }
 
-        #myChart {
-            max-width: 700px;
-            height: 400px;
+        button {
+            padding: 6px 12px;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+
+        canvas {
+            background: white;
+            margin-bottom: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            font-weight: bold;
+            margin-right: 5px;
         }
     </style>
 </head>
 
 <body>
+    <h1>Останні дані з IoT пристрою</h1>
 
-    <h1>Дані IoT-пристроїв</h1>
+    <div style="margin-bottom: 20px;">
+        <label for="minTemp">Мін. температура:</label>
+        <input type="number" id="minTemp" step="0.1" />
+        <label for="maxTemp">Макс. температура:</label>
+        <input type="number" id="maxTemp" step="0.1" />
+        <button onclick="applyTemperatureFilter()">Фільтрувати</button>
+        <button onclick="resetFilter()">Скинути фільтр</button>
+    </div>
 
     <table id="data-table">
         <thead>
             <tr>
-                <th>Пристрій</th>
-                <th>Температура (°C)</th>
-                <th>Вологість (%)</th>
+                <th>ID</th>
+                <th>device_id</th>
+                <th>temperature (°C)</th>
+                <th>humidity (%)</th>
             </tr>
         </thead>
-        <tbody>
-            <!-- Дані таблиці будуть вставлені тут скриптом -->
-        </tbody>
+        <tbody></tbody>
     </table>
 
-    <canvas id="myChart"></canvas>
+    <canvas id="tempChart" width="800" height="300"></canvas>
+    <canvas id="humChart" width="800" height="300"></canvas>
 
-    <script>
-        // Дані IoT-пристроїв
-        const iotData = [
-            { device: 'Device 1', temperature: 22.5, humidity: 45, timestamp: '2025-05-30T10:00:00Z' },
-            { device: 'Device 2', temperature: 23.1, humidity: 43, timestamp: '2025-05-30T10:05:00Z' },
-            { device: 'Device 1', temperature: 22.7, humidity: 46, timestamp: '2025-05-30T10:10:00Z' },
-            { device: 'Device 3', temperature: 21.9, humidity: 44, timestamp: '2025-05-30T10:15:00Z' },
-            { device: 'Device 2', temperature: 23.3, humidity: 42, timestamp: '2025-05-30T10:20:00Z' }
-        ];
-
-        // Функція рендерингу таблиці
-        function renderTable(data) {
-            const tableBody = document.querySelector('#data-table tbody');
-            tableBody.innerHTML = '';
-
-            data.forEach(entry => {
-                const row = document.createElement('tr');
-
-                const deviceCell = document.createElement('td');
-                deviceCell.textContent = entry.device;
-                row.appendChild(deviceCell);
-
-                const tempCell = document.createElement('td');
-                tempCell.textContent = entry.temperature.toFixed(1);
-                row.appendChild(tempCell);
-
-                const humidityCell = document.createElement('td');
-                humidityCell.textContent = entry.humidity.toFixed(1);
-                row.appendChild(humidityCell);
-
-                tableBody.appendChild(row);
-            });
-        }
-
-        // Функція рендерингу графіка Chart.js
-        function renderChart(data) {
-            const ctx = document.getElementById('myChart').getContext('2d');
-
-            // Відсортуємо дані за timestamp
-            const sortedData = data.slice().sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-
-            const labels = sortedData.map(entry => {
-                const d = new Date(entry.timestamp);
-                return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            });
-
-            const temperatures = sortedData.map(entry => entry.temperature);
-            const humidities = sortedData.map(entry => entry.humidity);
-
-            if (window.myChartInstance) {
-                window.myChartInstance.destroy();
-            }
-
-            window.myChartInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: 'Температура (°C)',
-                            data: temperatures,
-                            borderColor: 'rgba(255, 99, 132, 1)',
-                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                            fill: false,
-                            tension: 0.3
-                        },
-                        {
-                            label: 'Вологість (%)',
-                            data: humidities,
-                            borderColor: 'rgba(54, 162, 235, 1)',
-                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                            fill: false,
-                            tension: 0.3
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    interaction: { mode: 'index', intersect: false },
-                    stacked: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-        }
-
-        // Початковий виклик
-        renderTable(iotData);
-        renderChart(iotData);
-    </script>
-
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
 </body>
 
 </html>
