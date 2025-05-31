@@ -22,16 +22,18 @@ h1 {
 .filters {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 20px;
     margin-bottom: 20px;
-    justify-content: space-between;
+    justify-content: flex-start;
+    flex-direction: row;
+    align-items: flex-start;
 }
 
-.filters div {
+.filters>div {
     display: flex;
-    align-items: center;
+    flex-direction: column;
     gap: 6px;
-    flex-wrap: wrap;
+    min-width: 140px;
 }
 
 input[type=number],
@@ -39,6 +41,8 @@ select {
     padding: 5px;
     border-radius: 4px;
     border: 1px solid #ccc;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 button {
@@ -48,6 +52,8 @@ button {
     border: none;
     border-radius: 4px;
     cursor: pointer;
+    margin-top: 18px;
+    /* трішки відступу зверху, щоб кнопки були вирівняні з фільтрами */
 }
 
 button:hover {
@@ -75,20 +81,4 @@ canvas {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     width: 100%;
     max-width: 100%;
-}
-
-.filters {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
-    margin-bottom: 20px;
-    justify-content: space-between;
-    flex-direction: column;
-    align-items: flex-start;
-}
-
-.filters>div {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
 }
