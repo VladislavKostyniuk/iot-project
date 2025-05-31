@@ -31,7 +31,6 @@
             font-weight: bold;
         }
 
-        .filters select,
         .filters input {
             padding: 5px 8px;
             font-size: 14px;
@@ -73,11 +72,6 @@
     <h1>Моніторинг пристроїв IoT</h1>
 
     <div class="filters">
-        <label for="idFilter">ID:</label>
-        <select id="idFilter">
-            <option value="all">Усі</option>
-        </select>
-
         <label for="tempMin">Мін. температура:</label>
         <input type="number" id="tempMin" step="0.1" placeholder="мін" />
 
@@ -94,11 +88,10 @@
     <table id="dataTable">
         <thead>
             <tr>
-                <th>#</th>
                 <th>ID</th>
+                <th>Пристрій</th>
                 <th>Температура (°C)</th>
                 <th>Вологість (%)</th>
-                <th>Час</th>
             </tr>
         </thead>
         <tbody></tbody>
@@ -107,9 +100,7 @@
     <canvas id="chart" width="800" height="400"></canvas>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        // Тут твій JS, який ти дав
-    </script>
+    <script src="script.js"></script>
 </body>
 
 </html>
