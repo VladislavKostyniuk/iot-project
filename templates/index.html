@@ -2,24 +2,101 @@
 <html lang="uk">
 
 <head>
-    <meta charset="UTF-8">
-    <title>Фільтр за пристроями та ID</title>
-    <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8" />
+    <title>Моніторинг пристроїв IoT</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 0 10px;
+            background: #f5f5f5;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .filters label {
+            margin-right: 5px;
+            font-weight: bold;
+        }
+
+        .filters select,
+        .filters input {
+            padding: 5px 8px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 120px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            box-shadow: 0 0 5px #ccc;
+        }
+
+        th,
+        td {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        th {
+            background: #007acc;
+            color: white;
+        }
+
+        canvas {
+            margin-top: 30px;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+    </style>
 </head>
 
 <body>
-    <h1>Дані з IoT-пристроїв</h1>
+    <h1>Моніторинг пристроїв IoT</h1>
 
     <div class="filters">
-        <label for="deviceFilter">Фільтр за пристроєм:</label>
+        <label for="deviceFilter">Пристрій:</label>
         <select id="deviceFilter">
-            <option value="">Усі пристрої</option>
+            <option value="all">Усі</option>
         </select>
 
-        <label for="idFilter">Фільтр за ID:</label>
-        <select id="idFilter">
-            <option value="">Усі ID</option>
+        <label for="timeFilter">Період:</label>
+        <select id="timeFilter">
+            <option value="all">Увесь час</option>
+            <option value="10">Останні 10 хв</option>
+            <option value="30">Останні 30 хв</option>
+            <option value="60">Остання година</option>
         </select>
+
+        <label for="tempMin">Мін. температура:</label>
+        <input type="number" id="tempMin" step="0.1" placeholder="мін" />
+
+        <label for="tempMax">Макс. температура:</label>
+        <input type="number" id="tempMax" step="0.1" placeholder="макс" />
+
+        <label for="humMin">Мін. вологість:</label>
+        <input type="number" id="humMin" step="0.1" placeholder="мін" />
+
+        <label for="humMax">Макс. вологість:</label>
+        <input type="number" id="humMax" step="0.1" placeholder="макс" />
     </div>
 
     <table id="dataTable">
@@ -27,17 +104,166 @@
             <tr>
                 <th>ID</th>
                 <th>Пристрій</th>
-                <th>Температура</th>
-                <th>Вологість</th>
+                <th>Температура (°C)</th>
+                <th>Вологість (%)</th>
                 <th>Час</th>
             </tr>
         </thead>
-        <tbody>
-            <!-- Дані з JavaScript -->
-        </tbody>
+        <tbody></tbody>
     </table>
 
-    <script src="script.js"></script>
+    <canvas id="chart" width="800" height="400"></canvas>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        let chart;
+        let data = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchData();
+            setInterval(fetchData, 10000); // оновлення кожні 10 секунд
+
+            document.getElementById('deviceFilter').addEventListener('change', applyFilters);
+            document.getElementById('timeFilter').addEventListener('change', applyFilters);
+            document.getElementById('tempMin').addEventListener('input', applyFilters);
+            document.getElementById('tempMax').addEventListener('input', applyFilters);
+            document.getElementById('humMin').addEventListener('input', applyFilters);
+            document.getElementById('humMax').addEventListener('input', applyFilters);
+        });
+
+        function fetchData() {
+            fetch('/data')
+                .then(response => response.json())
+                .then(result => {
+                    if (result.status === 'ok') {
+                        data = result.data.map((entry, index) => {
+                            if (!entry.device_id) {
+                                entry.device_id = "device_" + (index + 1);
+                            }
+                            return entry;
+                        });
+                        populateDeviceFilter();
+                        applyFilters();
+                    } else {
+                        console.error('Помилка отримання даних:', result.message);
+                    }
+                })
+                .catch(err => console.error('Помилка fetch:', err));
+        }
+
+        function populateDeviceFilter() {
+            const deviceFilter = document.getElementById('deviceFilter');
+            deviceFilter.querySelectorAll('option:not([value="all"])').forEach(o => o.remove());
+
+            const deviceIds = [...new Set(data.map(entry => entry.device_id))];
+            deviceIds.forEach((id, i) => {
+                const option = document.createElement('option');
+                option.value = id;
+                option.textContent = `Пристрій ${i + 1}`;
+                deviceFilter.appendChild(option);
+            });
+        }
+
+        function applyFilters() {
+            const deviceFilterValue = document.getElementById('deviceFilter').value;
+            const timeFilterValue = document.getElementById('timeFilter').value;
+            const tempMin = parseFloat(document.getElementById('tempMin').value);
+            const tempMax = parseFloat(document.getElementById('tempMax').value);
+            const humMin = parseFloat(document.getElementById('humMin').value);
+            const humMax = parseFloat(document.getElementById('humMax').value);
+
+            const now = Date.now();
+            let filtered = data;
+
+            if (deviceFilterValue !== 'all') {
+                filtered = filtered.filter(entry => entry.device_id === deviceFilterValue);
+            }
+
+            if (timeFilterValue !== 'all') {
+                const minutes = parseInt(timeFilterValue);
+                const cutoff = now - minutes * 60 * 1000;
+                filtered = filtered.filter(entry => new Date(entry.timestamp).getTime() >= cutoff);
+            }
+
+            if (!isNaN(tempMin)) {
+                filtered = filtered.filter(entry => entry.temperature !== undefined && entry.temperature >= tempMin);
+            }
+            if (!isNaN(tempMax)) {
+                filtered = filtered.filter(entry => entry.temperature !== undefined && entry.temperature <= tempMax);
+            }
+            if (!isNaN(humMin)) {
+                filtered = filtered.filter(entry => entry.humidity !== undefined && entry.humidity >= humMin);
+            }
+            if (!isNaN(humMax)) {
+                filtered = filtered.filter(entry => entry.humidity !== undefined && entry.humidity <= humMax);
+            }
+
+            renderTable(filtered);
+            renderChart(filtered);
+        }
+
+        function renderTable(data) {
+            const tbody = document.querySelector('#dataTable tbody');
+            tbody.innerHTML = '';
+            data.forEach((entry, index) => {
+                const temp = entry.temperature !== undefined ? entry.temperature.toFixed(1) : '-';
+                const hum = entry.humidity !== undefined ? entry.humidity.toFixed(1) : '-';
+                const timeStr = entry.timestamp ? new Date(entry.timestamp).toLocaleString() : '-';
+
+                // Покажемо ім'я пристрою у форматі "Пристрій N", де N - номер з фільтрації
+                const deviceIds = [...new Set(data.map(e => e.device_id))];
+                const deviceIndex = deviceIds.indexOf(entry.device_id) + 1;
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+              <td>${index + 1}</td>
+              <td>Пристрій ${deviceIndex > 0 ? deviceIndex : entry.device_id}</td>
+              <td>${temp}</td>
+              <td>${hum}</td>
+              <td>${timeStr}</td>
+            `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function renderChart(data) {
+            const ctx = document.getElementById('chart').getContext('2d');
+            if (chart) chart.destroy();
+
+            const labels = data.map(entry => new Date(entry.timestamp).toLocaleTimeString());
+            const tempData = data.map(entry => entry.temperature);
+            const humData = data.map(entry => entry.humidity);
+
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Температура (°C)',
+                            data: tempData,
+                            borderColor: 'rgb(255, 99, 132)',
+                            fill: false,
+                            tension: 0.1
+                        },
+                        {
+                            label: 'Вологість (%)',
+                            data: humData,
+                            borderColor: 'rgb(54, 162, 235)',
+                            fill: false,
+                            tension: 0.1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+    </script>
 </body>
 
 </html>
